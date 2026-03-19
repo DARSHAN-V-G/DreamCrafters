@@ -17,11 +17,23 @@ exports.protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = Number(decoded.id);
+    if (!Number.isInteger(userId)) {
+      return res.status(401).json({ error: 'Not authorized, token failed' });
+    }
     
     // Find user from the unified users table (no need to check role-specific models)
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-      omit: { passwordHash: true },
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        role: true,
+        isVerified: true,
+        isActive: true,
+      },
     });
 
     if (!user) {

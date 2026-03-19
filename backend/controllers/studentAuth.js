@@ -1,69 +1,35 @@
-// ════════════════════════════════════════════════════════════════════════════
-// TODO: Rewrite this controller to use Prisma instead of Mongoose.
-//
-// Import the Prisma client like this:
-//   const prisma = require('../lib/prisma');
-//
-// The old Mongoose model (Student) has been removed.
-// Use `prisma.user` with `role: 'student'` for all queries.
-//
-// Key changes needed:
-//   - Student.findOne({ email })        → prisma.user.findFirst({ where: { email, role: 'student' } })
-//   - Student.findById(id)              → prisma.user.findUnique({ where: { id } })
-//   - Student.create({...})             → prisma.user.create({ data: {...} })
-//   - student.save()                    → prisma.user.update({ where: { id }, data: {...} })
-//   - student.comparePassword(pwd)      → bcrypt.compare(pwd, user.passwordHash)
-//   - Mongoose pre-save hook for hash   → bcrypt.hash(password, 12) before create/update
-//   - student._id                       → user.id
-//   - { $gt: Date.now() }              → { gt: new Date() }  (Prisma filter syntax)
-//
-// Password field mapping:
-//   - Old: `password` (Mongoose)
-//   - New: `passwordHash` (Prisma) → maps to `password_hash` column
-//
-// OTP field mapping:
-//   - Old: emailVerificationOTP      → New: emailVerificationOtp
-//   - Old: emailVerificationExpires   → New: emailVerificationExpires
-//   - Old: passwordResetOTP          → New: passwordResetOtp
-//   - Old: passwordResetExpires      → New: passwordResetExpires
-//
-// Setting a field to undefined (Mongoose) → set to null (Prisma)
-// ════════════════════════════════════════════════════════════════════════════
-
-// ── Placeholder stubs (remove these once you rewrite with Prisma) ──
-const notImplemented = (req, res) => {
-  res.status(501).json({ error: 'Not implemented yet — rewrite this controller to use Prisma' });
-};
-
-exports.requestStudentSignup = notImplemented;
-exports.verifyStudentOTP = notImplemented;
-exports.completeStudentSignup = notImplemented;
-exports.loginStudent = notImplemented;
-exports.getStudentProfile = notImplemented;
-exports.logoutStudent = notImplemented;
-exports.requestPasswordReset = notImplemented;
-exports.verifyPasswordResetOTP = notImplemented;
-exports.resetPassword = notImplemented;
-exports.changePassword = notImplemented;
-
-/*
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const Student = require('../models/Student');
+const prisma = require('../lib/prisma');
 const { sendVerificationOTP, sendPasswordResetOTP } = require('../utils/email');
 
-// Generate JWT
+const ROLE = 'student';
+
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '30d'
+    expiresIn: process.env.JWT_EXPIRES_IN || '30d',
   });
 };
 
-// Generate 6-digit OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+const setAuthCookie = (res, token) => {
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
 };
 
-// Step 1: Request email verification (send OTP)
+const sanitizeStudent = (user) => ({
+  id: user.id,
+  name: user.name,
+  username: user.username,
+  email: user.email,
+  role: user.role,
+});
+
 exports.requestStudentSignup = async (req, res) => {
   try {
     const { email } = req.body;
@@ -72,46 +38,54 @@ exports.requestStudentSignup = async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    // Check if email already exists and is verified
-    const existingStudent = await Student.findOne({ email });
-    if (existingStudent && existingStudent.isEmailVerified) {
+    const existingStudent = await prisma.user.findFirst({
+      where: { email, role: ROLE },
+    });
+
+    if (existingStudent && existingStudent.isVerified) {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    // Generate OTP
     const otp = generateOTP();
-    const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Create or update student with OTP
     if (existingStudent) {
-      existingStudent.emailVerificationOTP = otp;
-      existingStudent.emailVerificationExpires = otpExpires;
-      await existingStudent.save();
+      await prisma.user.update({
+        where: { id: existingStudent.id },
+        data: {
+          emailVerificationOtp: otp,
+          emailVerificationExpires: otpExpires,
+        },
+      });
     } else {
-      await Student.create({
-        email,
-        emailVerificationOTP: otp,
-        emailVerificationExpires: otpExpires,
-        name: 'Pending',
-        username: `temp_${Date.now()}`,
-        password: 'temporary'
+      const temporaryPasswordHash = await bcrypt.hash(`temporary_${Date.now()}`, 12);
+
+      await prisma.user.create({
+        data: {
+          name: 'Pending',
+          email,
+          username: `temp_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+          passwordHash: temporaryPasswordHash,
+          role: ROLE,
+          isVerified: false,
+          emailVerificationOtp: otp,
+          emailVerificationExpires: otpExpires,
+        },
       });
     }
 
-    // Send OTP email
     await sendVerificationOTP(email, otp, 'student');
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Verification OTP sent to your email'
+      message: 'Verification OTP sent to your email',
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Student request signup failed:', err);
+    return res.status(500).json({ error: 'Failed to process signup request' });
   }
 };
 
-// Step 2: Verify OTP
 exports.verifyStudentOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -120,28 +94,31 @@ exports.verifyStudentOTP = async (req, res) => {
       return res.status(400).json({ error: 'Email and OTP are required' });
     }
 
-    const student = await Student.findOne({
-      email,
-      emailVerificationOTP: otp,
-      emailVerificationExpires: { $gt: Date.now() }
+    const student = await prisma.user.findFirst({
+      where: {
+        email,
+        role: ROLE,
+        emailVerificationOtp: otp,
+        emailVerificationExpires: { gt: new Date() },
+      },
+      select: { email: true },
     });
 
     if (!student) {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'OTP verified successfully',
-      email: student.email
+      email: student.email,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Student OTP verification failed:', err);
+    return res.status(500).json({ error: 'Failed to verify OTP' });
   }
 };
 
-// Step 3: Complete signup with details
 exports.completeStudentSignup = async (req, res) => {
   try {
     const { email, otp, name, username, password } = req.body;
@@ -150,59 +127,51 @@ exports.completeStudentSignup = async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
-    const student = await Student.findOne({
-      email,
-      emailVerificationOTP: otp,
-      emailVerificationExpires: { $gt: Date.now() }
+    const student = await prisma.user.findFirst({
+      where: {
+        email,
+        role: ROLE,
+        emailVerificationOtp: otp,
+        emailVerificationExpires: { gt: new Date() },
+      },
     });
 
     if (!student) {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
-    // Check if username is already taken
-    const existingUsername = await Student.findOne({ username });
-    if (existingUsername && existingUsername._id.toString() !== student._id.toString()) {
+    const existingUsername = await prisma.user.findFirst({ where: { username } });
+    if (existingUsername && existingUsername.id !== student.id) {
       return res.status(400).json({ error: 'Username already taken' });
     }
 
-    // Update student details
-    student.name = name;
-    student.username = username;
-    student.password = password;
-    student.isEmailVerified = true;
-    student.emailVerificationOTP = undefined;
-    student.emailVerificationExpires = undefined;
-    await student.save();
+    const passwordHash = await bcrypt.hash(password, 12);
 
-    // Generate JWT token
-    const token = generateToken(student._id, student.role);
-
-    // Send token as HTTP-only cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    const updatedStudent = await prisma.user.update({
+      where: { id: student.id },
+      data: {
+        name,
+        username,
+        passwordHash,
+        isVerified: true,
+        emailVerificationOtp: null,
+        emailVerificationExpires: null,
+      },
     });
 
-    res.status(201).json({
+    const token = generateToken(updatedStudent.id, updatedStudent.role);
+    setAuthCookie(res, token);
+
+    return res.status(201).json({
       success: true,
-      user: {
-        id: student._id,
-        name: student.name,
-        username: student.username,
-        email: student.email,
-        role: student.role
-      }
+      user: sanitizeStudent(updatedStudent),
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Complete student signup failed:', err);
+    return res.status(500).json({ error: 'Failed to complete signup' });
   }
 };
 
-// Login
 exports.loginStudent = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -211,72 +180,76 @@ exports.loginStudent = async (req, res) => {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    const student = await Student.findOne({ username });
+    const student = await prisma.user.findFirst({
+      where: { username, role: ROLE },
+    });
+
     if (!student) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    if (!student.isEmailVerified) {
+    if (!student.isVerified) {
       return res.status(401).json({ error: 'Please verify your email first' });
     }
 
-    const isPasswordValid = await student.comparePassword(password);
+    const isPasswordValid = await bcrypt.compare(password, student.passwordHash);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const token = generateToken(student._id, student.role);
+    const token = generateToken(student.id, student.role);
+    setAuthCookie(res, token);
 
-    // Send token as HTTP-only cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      user: {
-        id: student._id,
-        name: student.name,
-        username: student.username,
-        email: student.email,
-        role: student.role
-      }
+      user: sanitizeStudent(student),
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Student login failed:', err);
+    return res.status(500).json({ error: 'Login failed' });
   }
 };
 
-// Get student profile
 exports.getStudentProfile = async (req, res) => {
   try {
-    res.status(200).json({
-      success: true,
-      user: req.user
+    const student = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        role: true,
+      },
     });
+
+    if (!student || student.role !== ROLE) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.status(200).json({ success: true, user: student });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Get student profile failed:', err);
+    return res.status(500).json({ error: 'Failed to load profile' });
   }
 };
 
-// Logout student
 exports.logoutStudent = async (req, res) => {
   try {
     res.cookie('token', '', {
       httpOnly: true,
-      expires: new Date(0)
+      expires: new Date(0),
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     });
-    res.status(200).json({ success: true, message: 'Logged out successfully' });
+
+    return res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Student logout failed:', err);
+    return res.status(500).json({ error: 'Logout failed' });
   }
 };
 
-// Request password reset (send OTP)
 exports.requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
@@ -285,33 +258,37 @@ exports.requestPasswordReset = async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    const student = await Student.findOne({ email, isEmailVerified: true });
+    const student = await prisma.user.findFirst({
+      where: { email, role: ROLE, isVerified: true },
+    });
+
     if (!student) {
       return res.status(404).json({ error: 'No verified account found with this email' });
     }
 
-    // Generate OTP
     const otp = generateOTP();
-    const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
-    student.passwordResetOTP = otp;
-    student.passwordResetExpires = otpExpires;
-    await student.save();
+    await prisma.user.update({
+      where: { id: student.id },
+      data: {
+        passwordResetOtp: otp,
+        passwordResetExpires: otpExpires,
+      },
+    });
 
-    // Send OTP email
     await sendPasswordResetOTP(email, otp);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Password reset OTP sent to your email'
+      message: 'Password reset OTP sent to your email',
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Student password reset request failed:', err);
+    return res.status(500).json({ error: 'Failed to send password reset OTP' });
   }
 };
 
-// Verify password reset OTP
 exports.verifyPasswordResetOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -320,27 +297,30 @@ exports.verifyPasswordResetOTP = async (req, res) => {
       return res.status(400).json({ error: 'Email and OTP are required' });
     }
 
-    const student = await Student.findOne({
-      email,
-      passwordResetOTP: otp,
-      passwordResetExpires: { $gt: Date.now() }
+    const student = await prisma.user.findFirst({
+      where: {
+        email,
+        role: ROLE,
+        passwordResetOtp: otp,
+        passwordResetExpires: { gt: new Date() },
+      },
+      select: { id: true },
     });
 
     if (!student) {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'OTP verified successfully'
+      message: 'OTP verified successfully',
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Student password reset OTP verification failed:', err);
+    return res.status(500).json({ error: 'Failed to verify OTP' });
   }
 };
 
-// Reset password with OTP
 exports.resetPassword = async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
@@ -349,33 +329,41 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Email, OTP, and new password are required' });
     }
 
-    const student = await Student.findOne({
-      email,
-      passwordResetOTP: otp,
-      passwordResetExpires: { $gt: Date.now() }
+    const student = await prisma.user.findFirst({
+      where: {
+        email,
+        role: ROLE,
+        passwordResetOtp: otp,
+        passwordResetExpires: { gt: new Date() },
+      },
+      select: { id: true },
     });
 
     if (!student) {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
     }
 
-    // Update password
-    student.password = newPassword;
-    student.passwordResetOTP = undefined;
-    student.passwordResetExpires = undefined;
-    await student.save();
+    const passwordHash = await bcrypt.hash(newPassword, 12);
 
-    res.status(200).json({
+    await prisma.user.update({
+      where: { id: student.id },
+      data: {
+        passwordHash,
+        passwordResetOtp: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    return res.status(200).json({
       success: true,
-      message: 'Password reset successful'
+      message: 'Password reset successful',
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Student reset password failed:', err);
+    return res.status(500).json({ error: 'Failed to reset password' });
   }
 };
 
-// Change password (for logged-in users)
 exports.changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -384,28 +372,33 @@ exports.changePassword = async (req, res) => {
       return res.status(400).json({ error: 'Old password and new password are required' });
     }
 
-    const student = await Student.findById(req.user._id);
-    if (!student) {
+    const student = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, role: true, passwordHash: true },
+    });
+
+    if (!student || student.role !== ROLE) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Verify old password
-    const isPasswordValid = await student.comparePassword(oldPassword);
+    const isPasswordValid = await bcrypt.compare(oldPassword, student.passwordHash);
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
 
-    // Update to new password
-    student.password = newPassword;
-    await student.save();
+    const passwordHash = await bcrypt.hash(newPassword, 12);
 
-    res.status(200).json({
+    await prisma.user.update({
+      where: { id: student.id },
+      data: { passwordHash },
+    });
+
+    return res.status(200).json({
       success: true,
-      message: 'Password changed successfully'
+      message: 'Password changed successfully',
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Student change password failed:', err);
+    return res.status(500).json({ error: 'Failed to change password' });
   }
 };
-*/

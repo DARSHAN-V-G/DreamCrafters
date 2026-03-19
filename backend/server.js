@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const studentAuthRouter = require('./routes/studentAuth');
 const educatorAuthRouter = require('./routes/educatorAuth');
