@@ -1,0 +1,19 @@
+meta {
+  name: List Recommendations
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/recommendations
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~type: content
+}

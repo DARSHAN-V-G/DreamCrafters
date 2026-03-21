@@ -1,0 +1,15 @@
+meta {
+  name: Delete Session
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/study-sessions/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

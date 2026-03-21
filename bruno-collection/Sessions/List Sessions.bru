@@ -1,0 +1,20 @@
+meta {
+  name: List Sessions
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/study-plans/1/sessions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~status: pending
+  ~date: 2026-03-25
+}

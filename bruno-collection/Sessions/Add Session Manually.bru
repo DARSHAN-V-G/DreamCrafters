@@ -1,0 +1,25 @@
+meta {
+  name: Add Session Manually
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/study-plans/1/sessions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Extra Practice — Arrays & Linked Lists",
+    "scheduled_date": "2026-04-01",
+    "scheduled_time": "14:00",
+    "duration_minutes": 90,
+    "priority": 3
+  }
+}

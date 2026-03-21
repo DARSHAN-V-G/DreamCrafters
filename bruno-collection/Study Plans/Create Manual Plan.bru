@@ -1,0 +1,24 @@
+meta {
+  name: Create Manual Plan
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/study-plans
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "My Custom Study Plan",
+    "goal": "Learn Data Structures and Algorithms",
+    "start_date": "2026-04-01",
+    "end_date": "2026-06-30"
+  }
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Submit Assessment Quiz
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/personalization/assess
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "quiz_answers": [
+      { "question_id": 1, "answer": "A" },
+      { "question_id": 2, "answer": "D" },
+      { "question_id": 3, "answer": "A" },
+      { "question_id": 4, "answer": "D" },
+      { "question_id": 5, "answer": "B" }
+    ]
+  }
+}

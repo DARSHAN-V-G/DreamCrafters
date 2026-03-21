@@ -1,0 +1,23 @@
+meta {
+  name: Reschedule Session
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/study-sessions/1/reschedule
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "new_date": "2026-04-05",
+    "new_time": "10:00",
+    "reason": "user_request"
+  }
+}

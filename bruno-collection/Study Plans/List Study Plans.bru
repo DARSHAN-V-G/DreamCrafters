@@ -1,0 +1,19 @@
+meta {
+  name: List Study Plans
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/study-plans
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:query {
+  ~status: active
+}

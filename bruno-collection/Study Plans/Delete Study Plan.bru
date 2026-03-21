@@ -1,0 +1,15 @@
+meta {
+  name: Delete Study Plan
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/study-plans/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

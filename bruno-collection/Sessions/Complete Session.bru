@@ -1,0 +1,21 @@
+meta {
+  name: Complete Session
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/study-sessions/1/complete
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "notes": "Finished the chapter, understood all key concepts"
+  }
+}

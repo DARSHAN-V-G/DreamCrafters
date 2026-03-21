@@ -1,0 +1,25 @@
+meta {
+  name: AI Generate Plan (with Career Path)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/study-plans/generate
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "goal": "Become a Data Scientist",
+    "start_date": "2026-04-01",
+    "end_date": "2026-07-01",
+    "daily_hours": 2,
+    "career_path_id": 1
+  }
+}

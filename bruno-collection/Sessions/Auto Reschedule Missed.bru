@@ -1,0 +1,21 @@
+meta {
+  name: Auto Reschedule Missed
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/study-sessions/auto-reschedule
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "plan_id": 1
+  }
+}

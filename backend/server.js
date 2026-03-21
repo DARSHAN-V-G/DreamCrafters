@@ -7,6 +7,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const studentAuthRouter = require('./routes/studentAuth');
 const educatorAuthRouter = require('./routes/educatorAuth');
 const adminAuthRouter = require('./routes/adminAuth');
+const studyPlannerRouter = require('./routes/studyPlanner');
 
 const app = express();
 app.use(cors({
@@ -19,6 +20,7 @@ app.use(cookieParser());
 app.use('/api/student/auth', studentAuthRouter);
 app.use('/api/educator/auth', educatorAuthRouter);
 app.use('/api/admin/auth', adminAuthRouter);
+app.use('/api', studyPlannerRouter);
 
 app.get('/api/hello', (req, res) => res.json({ message: 'Hello from backend' }));
 

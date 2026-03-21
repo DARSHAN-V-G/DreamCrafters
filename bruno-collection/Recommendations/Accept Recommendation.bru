@@ -1,0 +1,15 @@
+meta {
+  name: Accept Recommendation
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseUrl}}/recommendations/1/accept
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Update Study Plan
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/study-plans/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "title": "Updated Plan Title",
+    "goal": "Updated goal description",
+    "status": "paused"
+  }
+}
