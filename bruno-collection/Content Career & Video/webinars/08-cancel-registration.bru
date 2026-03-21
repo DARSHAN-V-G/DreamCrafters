@@ -1,0 +1,15 @@
+meta {
+  name: Cancel Registration
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{baseUrl}}/webinars/{{webinarId}}/register
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{studentToken}}
+}

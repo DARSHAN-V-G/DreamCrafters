@@ -1,0 +1,22 @@
+meta {
+  name: Update Career Path
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/career-paths/{{careerPathId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "title": "Full Stack Developer — Updated",
+    "avg_salary_range": "₹6–12 LPA"
+  }
+}

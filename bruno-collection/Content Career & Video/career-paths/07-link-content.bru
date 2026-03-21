@@ -1,0 +1,22 @@
+meta {
+  name: Link Content
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/career-paths/{{careerPathId}}/content
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "content_id": {{contentId}},
+    "order_index": 1
+  }
+}

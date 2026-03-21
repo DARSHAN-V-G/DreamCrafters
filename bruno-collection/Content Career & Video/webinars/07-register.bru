@@ -1,0 +1,15 @@
+meta {
+  name: Register for Webinar
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/webinars/{{webinarId}}/register
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{studentToken}}
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Delete Career Path
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/career-paths/{{careerPathId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}

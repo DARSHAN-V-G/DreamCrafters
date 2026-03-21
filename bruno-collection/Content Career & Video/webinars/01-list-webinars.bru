@@ -1,0 +1,17 @@
+meta {
+  name: List Webinars
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/webinars
+  body: none
+  auth: none
+}
+
+params:query {
+  topic: AI
+  page: 1
+  limit: 20
+}

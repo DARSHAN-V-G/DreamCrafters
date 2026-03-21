@@ -1,0 +1,25 @@
+meta {
+  name: Create Career Path
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/career-paths
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "title": "Full Stack Developer",
+    "description": "Complete roadmap to becoming a full stack developer",
+    "field": "Technology",
+    "required_skills": ["JavaScript", "React", "Node.js", "PostgreSQL"],
+    "avg_salary_range": "₹5–10 LPA"
+  }
+}

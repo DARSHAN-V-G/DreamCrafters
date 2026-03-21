@@ -1,0 +1,15 @@
+meta {
+  name: Unlink Content
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{baseUrl}}/career-paths/{{careerPathId}}/content/{{contentId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}

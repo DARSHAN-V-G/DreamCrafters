@@ -1,0 +1,15 @@
+meta {
+  name: Add Bookmark
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/content/{{contentId}}/bookmark
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{studentToken}}
+}

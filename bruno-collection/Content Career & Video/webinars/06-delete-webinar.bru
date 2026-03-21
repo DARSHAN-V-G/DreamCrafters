@@ -1,0 +1,15 @@
+meta {
+  name: Delete Webinar
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/webinars/{{webinarId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}

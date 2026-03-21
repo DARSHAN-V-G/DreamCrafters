@@ -8,6 +8,9 @@ const studentAuthRouter = require('./routes/studentAuth');
 const educatorAuthRouter = require('./routes/educatorAuth');
 const adminAuthRouter = require('./routes/adminAuth');
 const studyPlannerRouter = require('./routes/studyPlanner');
+const contentRoutes = require('./routes/content');
+const careerPathRoutes = require('./routes/careerPaths');
+const webinarRoutes = require('./routes/webinars');
 
 const app = express();
 app.use(cors({
@@ -21,6 +24,9 @@ app.use('/api/student/auth', studentAuthRouter);
 app.use('/api/educator/auth', educatorAuthRouter);
 app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api', studyPlannerRouter);
+app.use('/api', contentRoutes);
+app.use('/api', careerPathRoutes);
+app.use('/api', webinarRoutes);
 
 app.get('/api/hello', (req, res) => res.json({ message: 'Hello from backend' }));
 

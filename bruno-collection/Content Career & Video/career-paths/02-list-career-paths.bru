@@ -1,0 +1,16 @@
+meta {
+  name: List Career Paths
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/career-paths
+  body: none
+  auth: none
+}
+
+params:query {
+  field: Technology
+  search: developer
+}

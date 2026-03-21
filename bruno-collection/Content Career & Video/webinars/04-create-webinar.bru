@@ -1,0 +1,27 @@
+meta {
+  name: Create Webinar
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/webinars
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{mentorToken}}
+}
+
+body:json {
+  {
+    "title": "Career in AI — Expert Panel",
+    "description": "Join industry experts for an in-depth talk on AI careers",
+    "scheduled_at": "2026-06-15T14:00:00Z",
+    "duration_minutes": 90,
+    "join_link": "https://meet.google.com/abc-xyz-123",
+    "topic": "AI & ML",
+    "max_participants": 100
+  }
+}

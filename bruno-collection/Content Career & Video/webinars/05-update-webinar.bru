@@ -1,0 +1,22 @@
+meta {
+  name: Update Webinar
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/webinars/{{webinarId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{mentorToken}}
+}
+
+body:json {
+  {
+    "title": "Career in AI — Expert Panel (Rescheduled)",
+    "scheduled_at": "2026-06-20T14:00:00Z"
+  }
+}
