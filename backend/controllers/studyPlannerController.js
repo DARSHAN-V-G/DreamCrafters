@@ -139,6 +139,12 @@ exports.generatePlan = async (req, res) => {
     });
   } catch (err) {
     console.error('generatePlan error:', err);
+    if (err.status === 429 || err.statusCode === 429 || err.message?.includes('429') || err.message?.includes('rate limit') || err.message?.includes('quota')) {
+      return res.status(429).json({ success: false, error: 'AI rate limit exceeded. Please wait a minute and try again.' });
+    }
+    if (err.status === 401 || err.statusCode === 401 || err.message?.includes('API key')) {
+      return res.status(503).json({ success: false, error: 'AI service misconfigured. Please check the GROQ_API_KEY in .env.' });
+    }
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };

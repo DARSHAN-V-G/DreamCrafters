@@ -1,0 +1,28 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/admin/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "DC_Admin",
+    "password": "DC_Admin!123"
+  }
+}
+
+script:post-response {
+  if (res.headers['set-cookie']) {
+    const tokenCookie = res.headers['set-cookie'].find(c => c.startsWith('token='));
+    if (tokenCookie) {
+      const token = tokenCookie.split('token=')[1].split(';')[0];
+      bru.setVar("token", token);
+    }
+  }
+}

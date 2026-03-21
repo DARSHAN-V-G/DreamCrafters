@@ -1,0 +1,31 @@
+meta {
+  name: 3. Complete Signup
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/student/auth/complete-signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "teststudent@example.com",
+    "otp": "123456",
+    "name": "Test Student",
+    "username": "teststudent",
+    "password": "Test@123"
+  }
+}
+
+script:post-response {
+  if (res.headers['set-cookie']) {
+    const tokenCookie = res.headers['set-cookie'].find(c => c.startsWith('token='));
+    if (tokenCookie) {
+      const token = tokenCookie.split('token=')[1].split(';')[0];
+      bru.setVar("token", token);
+    }
+  }
+}

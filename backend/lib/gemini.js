@@ -1,9 +1,11 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API);
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 /**
- * Generate a personalized study plan using Gemini AI.
+ * Generate a personalized study plan using Groq AI (openai/gpt-oss-20b).
+ *
+ * Uses Groq's strict structured outputs to guarantee valid JSON matching our DB schema.
  *
  * @param {object} context
  * @param {string} context.goal - The user's study goal
@@ -26,86 +28,102 @@ async function generateStudyPlan(context) {
     interests,
   } = context;
 
-  const prompt = `You are an expert AI study planner for an educational platform called DreamCrafters.
+  const systemPrompt = `You are an expert AI study planner for DreamCrafters, an educational platform. Generate personalized study plans. Always create practical, well-structured plans with sessions.`;
 
-A student needs a personalized study plan. Generate a detailed, structured study plan based on the information below.
+  const userPrompt = `Generate a study plan for this student:
 
 ## Student Profile
-- **Goal**: ${goal}
-- **Date range**: ${startDate} to ${endDate}
-- **Daily study hours**: ${dailyHours} hours/day
-- **Difficulty preference**: ${preferences.difficultyPreference || 'medium'}
-- **Preferred language**: ${preferences.preferredLanguage || 'English'}
-- **Learning style**: ${preferences.learningStyle || 'not specified'}
-- **Interests**: ${interests.length > 0 ? interests.join(', ') : 'not specified'}
+- Goal: ${goal}
+- Date range: ${startDate} to ${endDate}
+- Daily study hours: ${dailyHours} hours/day
+- Difficulty preference: ${preferences.difficultyPreference || 'medium'}
+- Language: ${preferences.preferredLanguage || 'English'}
+- Learning style: ${preferences.learningStyle || 'not specified'}
+- Interests: ${interests.length > 0 ? interests.join(', ') : 'general'}
 
 ## Available Content Items
 ${contentItems.length > 0
     ? contentItems.map(c => `- ID: ${c.id}, Title: "${c.title}", Difficulty: ${c.difficulty}, Duration: ${c.durationMinutes || 60} min, Type: ${c.type}`).join('\n')
-    : 'No pre-existing content available. Generate session titles based on the student\'s goal and interests.'}
+    : 'No pre-existing content. Create original session titles based on the goal.'}
 
 ## Rules
-1. Schedule sessions ONLY within the date range ${startDate} to ${endDate} (inclusive).
-2. Schedule at most ${dailyHours} session(s) per day (each session is approximately 60 minutes).
-3. Skip weekends (Saturday and Sunday) to give the student rest days — UNLESS the total days are very few (less than 14 days), in which case you may use weekends too.
-4. Assign each session a \`content_id\` from the available content items above. If no content matches or the list is empty, set \`content_id\` to null and create a descriptive session title based on the goal.
-5. Assign priority based on difficulty: advanced = 3 (high), intermediate = 2 (medium), beginner = 1 (low).
-6. Assign \`scheduled_time\` as "HH:MM" in 24-hour format. Spread sessions throughout the day starting from "09:00", incrementing by the duration of each session.
-7. Order sessions logically — start with foundational/beginner content and progress to advanced.
-8. The plan title should be concise and descriptive, e.g., "Study Plan — {goal}".
+1. Sessions ONLY within ${startDate} to ${endDate}.
+2. At most ${dailyHours} session(s) per day, each around 60 minutes.
+3. Skip weekends unless total days < 14.
+4. For content_id: use an ID from above if relevant, use 0 if no matching content.
+5. For scheduled_time: use "HH:MM" 24h format starting from "09:00".
+6. Priority: beginner=1, intermediate=2, advanced=3.
+7. Order sessions logically — beginner to advanced.
+8. Title format: "Study Plan: <short goal summary>".
+9. notes: short helpful note for the session, or empty string if none.
+10. Generate at least 5 sessions.`;
 
-## Output Format
-Return ONLY a valid JSON object with this exact structure (no extra text, no markdown):
-
-{
-  "title": "Study Plan — <concise goal summary>",
-  "sessions": [
-    {
-      "content_id": <number or null>,
-      "title": "<session title>",
-      "scheduled_date": "YYYY-MM-DD",
-      "scheduled_time": "HH:MM",
-      "duration_minutes": <number>,
-      "priority": <1 | 2 | 3>,
-      "notes": "<optional brief note or null>"
-    }
-  ]
-}`;
-
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    generationConfig: {
-      responseMimeType: 'application/json',
-      temperature: 0.7,
+  const response = await groq.chat.completions.create({
+    model: 'openai/gpt-oss-20b',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'study_plan',
+        strict: true,
+        schema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string' },
+            sessions: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  content_id: { type: 'integer' },
+                  title: { type: 'string' },
+                  scheduled_date: { type: 'string' },
+                  scheduled_time: { type: 'string' },
+                  duration_minutes: { type: 'integer' },
+                  priority: { type: 'integer' },
+                  notes: { type: 'string' },
+                },
+                required: ['content_id', 'title', 'scheduled_date', 'scheduled_time', 'duration_minutes', 'priority', 'notes'],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ['title', 'sessions'],
+          additionalProperties: false,
+        },
+      },
     },
+    temperature: 0.7,
   });
 
-  const result = await model.generateContent(prompt);
-  const responseText = result.response.text();
-
-  // Parse the JSON response
-  const parsed = JSON.parse(responseText);
+  const responseText = response.choices[0].message.content;
+  const parsed = JSON.parse(responseText || '{}');
 
   // Validate structure
   if (!parsed.title || !Array.isArray(parsed.sessions)) {
     throw new Error('AI returned an invalid study plan structure');
   }
 
-  // Validate and sanitize each session
+  // Build set of valid content IDs
+  const validContentIds = new Set(contentItems.map(c => c.id));
+
+  // Sanitize each session — convert 0 content_id to null, validate ranges
   parsed.sessions = parsed.sessions.map((s, i) => {
     if (!s.title || !s.scheduled_date || !s.duration_minutes) {
       throw new Error(`AI returned an invalid session at index ${i}`);
     }
 
-    // Ensure content_id is valid or null
-    const contentId = s.content_id && Number.isInteger(s.content_id) ? s.content_id : null;
-
-    // Validate content_id exists in our content list
-    const validContentIds = new Set(contentItems.map(c => c.id));
-    const finalContentId = contentId && validContentIds.has(contentId) ? contentId : null;
+    // content_id: 0 means "no content", convert to null. Also null out if ID doesn't exist.
+    const rawContentId = s.content_id;
+    const contentId = (rawContentId && rawContentId > 0 && validContentIds.has(rawContentId))
+      ? rawContentId
+      : null;
 
     return {
-      content_id: finalContentId,
+      content_id: contentId,
       title: String(s.title).substring(0, 255),
       scheduled_date: s.scheduled_date,
       scheduled_time: s.scheduled_time || null,
@@ -115,7 +133,6 @@ Return ONLY a valid JSON object with this exact structure (no extra text, no mar
     };
   });
 
-  // Ensure title is within limits
   parsed.title = String(parsed.title).substring(0, 255);
 
   return parsed;

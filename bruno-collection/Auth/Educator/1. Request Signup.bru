@@ -1,0 +1,17 @@
+meta {
+  name: 1. Request Signup (Send OTP)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/educator/auth/request-signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "testeducator@example.com"
+  }
+}

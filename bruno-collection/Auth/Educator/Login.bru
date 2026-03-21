@@ -1,0 +1,28 @@
+meta {
+  name: Login
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/educator/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "testeducator",
+    "password": "Test@123"
+  }
+}
+
+script:post-response {
+  if (res.headers['set-cookie']) {
+    const tokenCookie = res.headers['set-cookie'].find(c => c.startsWith('token='));
+    if (tokenCookie) {
+      const token = tokenCookie.split('token=')[1].split(';')[0];
+      bru.setVar("token", token);
+    }
+  }
+}
