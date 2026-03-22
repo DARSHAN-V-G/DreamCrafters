@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { contentAPI } from '../../api'
 import DashboardLayout from '../../components/DashboardLayout'
+import SpotlightCard from '../../components/reactbits/SpotlightCard'
+import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 const TYPE_ICONS = { video: '🎬', article: '📄', quiz: '❓', ebook: '📖' }
 const DIFF_COLORS = { beginner: 'badge-success', intermediate: 'badge-warning', advanced: 'badge-danger' }
@@ -118,36 +121,38 @@ export default function ContentLibrary() {
             {filtered.length} {filtered.length === 1 ? 'item' : 'items'} found
           </p>
           <div className="grid-auto">
-            {filtered.map(c => (
-              <div className="card card-hover" key={c.id} style={{ cursor: 'pointer', position: 'relative' }}>
-                <button onClick={(e) => { e.stopPropagation(); handleBookmark(c.id, c.isBookmarked) }}
-                  className="btn-ghost" style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', fontSize: '1.2rem', zIndex: 5, background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}
-                  title={c.isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
-                  {c.isBookmarked ? '🔖' : '📑'}
-                </button>
-                <div style={{ width: '100%', height: '120px', borderRadius: 'var(--radius-md)', background: 'linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.15))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', marginBottom: '1rem' }}>
-                  {TYPE_ICONS[c.type] || '📄'}
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <span className={`badge ${DIFF_COLORS[c.difficulty] || 'badge-info'}`}>{c.difficulty || 'N/A'}</span>
-                  {c.duration_minutes && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>⏱️ {c.duration_minutes} min</span>}
-                </div>
-                <h3 style={{ fontWeight: 700, fontSize: '1rem', margin: '0 0 0.5rem', lineHeight: 1.4, minHeight: '2.8rem' }}>{c.title}</h3>
-                {c.description && <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.75rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.description}</p>}
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                  {c.category && <span className="badge badge-primary">{typeof c.category === 'object' ? c.category.name : c.category}</span>}
-                  <span className="badge" style={{ background: 'var(--bg-input)' }}>{c.type}</span>
-                </div>
-                {c.userProgress && c.userProgress.progress_percent > 0 && (
-                  <div style={{ marginBottom: '0.75rem' }}>
-                    <div className="progress-bar" style={{ height: '6px' }}><div className="progress-fill" style={{ width: `${c.userProgress.progress_percent}%` }} /></div>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{c.userProgress.progress_percent}% complete</p>
+            {filtered.map((c, idx) => (
+              <AnimatedContent key={c.id} delay={0} stagger={idx * 0.06}>
+                <SpotlightCard className="" style={{ cursor: 'pointer', position: 'relative' }}>
+                  <button onClick={(e) => { e.stopPropagation(); handleBookmark(c.id, c.isBookmarked) }}
+                    className="btn-ghost" style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', fontSize: '1.2rem', zIndex: 5, background: 'rgba(255,255,255,0.9)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}
+                    title={c.isBookmarked ? 'Remove bookmark' : 'Bookmark'}>
+                    {c.isBookmarked ? '🔖' : '📑'}
+                  </button>
+                  <div style={{ width: '100%', height: '120px', borderRadius: 'var(--radius-md)', background: 'linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.15))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', marginBottom: '1rem' }}>
+                    {TYPE_ICONS[c.type] || '📄'}
                   </div>
-                )}
-                <button className="btn btn-primary btn-full btn-sm" onClick={() => c.url && window.open(c.url, '_blank')}>
-                  {c.userProgress?.status === 'completed' ? '✓ Completed' : 'Start Learning'}
-                </button>
-              </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span className={`badge ${DIFF_COLORS[c.difficulty] || 'badge-info'}`}>{c.difficulty || 'N/A'}</span>
+                    {c.duration_minutes && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>⏱️ {c.duration_minutes} min</span>}
+                  </div>
+                  <h3 style={{ fontWeight: 700, fontSize: '1rem', margin: '0 0 0.5rem', lineHeight: 1.4, minHeight: '2.8rem' }}>{c.title}</h3>
+                  {c.description && <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.75rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.description}</p>}
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                    {c.category && <span className="badge badge-primary">{typeof c.category === 'object' ? c.category.name : c.category}</span>}
+                    <span className="badge" style={{ background: 'var(--bg-input)' }}>{c.type}</span>
+                  </div>
+                  {c.userProgress && c.userProgress.progress_percent > 0 && (
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <div className="progress-bar" style={{ height: '6px' }}><div className="progress-fill" style={{ width: `${c.userProgress.progress_percent}%` }} /></div>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{c.userProgress.progress_percent}% complete</p>
+                    </div>
+                  )}
+                  <button className="btn btn-primary btn-full btn-sm" onClick={() => c.url && window.open(c.url, '_blank')}>
+                    {c.userProgress?.status === 'completed' ? '✓ Completed' : 'Start Learning'}
+                  </button>
+                </SpotlightCard>
+              </AnimatedContent>
             ))}
           </div>
         </>

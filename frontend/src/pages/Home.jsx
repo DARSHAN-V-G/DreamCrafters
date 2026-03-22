@@ -1,6 +1,13 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
+import Particles from '../components/reactbits/Particles'
+import SplitText from '../components/reactbits/SplitText'
+import GradientText from '../components/reactbits/GradientText'
+import TiltCard from '../components/reactbits/TiltCard'
+import Magnet from '../components/reactbits/Magnet'
+import AnimatedContent from '../components/reactbits/AnimatedContent'
 
 export default function Home() {
   const { user } = useAuth()
@@ -16,59 +23,116 @@ export default function Home() {
 
   return (
     <div className="landing-page">
-      <nav className="landing-nav">
-        <div className="landing-logo">DreamCrafters</div>
+      <Particles
+        count={80}
+        color="#667eea"
+        speed={0.25}
+        size={2}
+        opacity={0.5}
+      />
+
+      <motion.nav
+        className="landing-nav"
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      >
+        <div className="landing-logo">
+          <GradientText
+            colors={['#667eea', '#764ba2', '#f093fb', '#667eea']}
+            animationSpeed={4}
+          >
+            DreamCrafters
+          </GradientText>
+        </div>
         <div className="landing-nav-links">
           {user ? (
-            <Link to="/dashboard" className="btn btn-primary">Dashboard</Link>
+            <Magnet strength={0.2}>
+              <Link to="/dashboard" className="btn btn-primary">Dashboard</Link>
+            </Magnet>
           ) : (
             <>
               <Link to="/login" className="btn btn-outline" style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'white' }}>Login</Link>
-              <Link to="/register" className="btn btn-primary">Get Started</Link>
+              <Magnet strength={0.2}>
+                <Link to="/register" className="btn btn-primary">Get Started</Link>
+              </Magnet>
             </>
           )}
         </div>
-      </nav>
+      </motion.nav>
 
       <section className="hero">
-        <div className="hero-content">
+        <div className="hero-content" style={{ position: 'relative', zIndex: 1 }}>
           <h1>
-            Your Future Starts<br />
-            with <span className="gradient-text">DreamCrafters</span>
+            <SplitText
+              text="Your Future Starts with"
+              delay={0.06}
+              duration={0.6}
+              style={{ color: 'white', fontSize: 'inherit', fontWeight: 'inherit' }}
+            />
+            <br />
+            <GradientText
+              colors={['#667eea', '#764ba2', '#f093fb', '#a78bfa', '#667eea']}
+              animationSpeed={3}
+              style={{ fontSize: 'inherit', fontWeight: 'inherit' }}
+            >
+              DreamCrafters
+            </GradientText>
           </h1>
-          <p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+          >
             An AI-powered learning platform that helps you plan your studies, 
             discover career paths, connect with mentors, and land your dream job.
-          </p>
-          <div className="hero-actions">
+          </motion.p>
+          <motion.div
+            className="hero-actions"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1, duration: 0.6 }}
+          >
             {user ? (
-              <Link to="/dashboard" className="btn btn-primary btn-lg">Go to Dashboard →</Link>
+              <Magnet strength={0.25}>
+                <Link to="/dashboard" className="btn btn-primary btn-lg">Go to Dashboard →</Link>
+              </Magnet>
             ) : (
               <>
-                <Link to="/register" className="btn btn-primary btn-lg">Create Free Account</Link>
-                <Link to="/login" className="btn btn-secondary btn-lg" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}>
-                  Sign In
-                </Link>
+                <Magnet strength={0.25}>
+                  <Link to="/register" className="btn btn-primary btn-lg">Create Free Account</Link>
+                </Magnet>
+                <Magnet strength={0.2}>
+                  <Link to="/login" className="btn btn-secondary btn-lg" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }}>
+                    Sign In
+                  </Link>
+                </Magnet>
               </>
             )}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      <section style={{ padding: '2rem 0 5rem' }}>
-        <h2 style={{ textAlign: 'center', color: 'white', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>
-          Everything You Need
-        </h2>
-        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)', marginBottom: '3rem', fontSize: '1.05rem' }}>
-          One platform for learning, career growth, and mentorship
-        </p>
+      <section style={{ padding: '2rem 0 5rem', position: 'relative', zIndex: 1 }}>
+        <AnimatedContent delay={0} direction="up">
+          <h2 style={{ textAlign: 'center', color: 'white', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+            Everything You Need
+          </h2>
+          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)', marginBottom: '3rem', fontSize: '1.05rem' }}>
+            One platform for learning, career growth, and mentorship
+          </p>
+        </AnimatedContent>
         <div className="feature-grid">
           {features.map((f, i) => (
-            <div className="feature-card" key={i}>
-              <div className="icon">{f.icon}</div>
-              <h3>{f.title}</h3>
-              <p>{f.desc}</p>
-            </div>
+            <AnimatedContent key={i} delay={0} stagger={i * 0.1} direction="up">
+              <TiltCard maxTilt={8} scale={1.03}>
+                <div className="feature-card">
+                  <div className="icon">{f.icon}</div>
+                  <h3>{f.title}</h3>
+                  <p>{f.desc}</p>
+                </div>
+              </TiltCard>
+            </AnimatedContent>
           ))}
         </div>
       </section>

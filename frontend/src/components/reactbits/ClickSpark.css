@@ -1,0 +1,24 @@
+.click-spark-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.click-spark {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: spark-burst ease-out forwards;
+  z-index: 100;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spark-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0);
+  }
+}

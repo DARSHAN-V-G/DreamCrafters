@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { studyPlanAPI } from '../../api'
 import DashboardLayout from '../../components/DashboardLayout'
+import SpotlightCard from '../../components/reactbits/SpotlightCard'
+import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function StudyPlanner() {
   const [plans, setPlans] = useState([])
@@ -121,8 +124,9 @@ export default function StudyPlanner() {
         </div>
       ) : (
         <div className="grid-auto">
-          {plans.map(plan => (
-            <div className="card card-hover" key={plan.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/study-planner/${plan.id}`)}>
+          {plans.map((plan, idx) => (
+            <AnimatedContent key={plan.id} delay={0} stagger={idx * 0.08}>
+              <SpotlightCard style={{ cursor: 'pointer' }} onClick={() => navigate(`/study-planner/${plan.id}`)}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
                 <span className={`badge ${statusColors[plan.status] || 'badge-info'}`}>{plan.status}</span>
                 <span className="badge badge-info">{plan.generated_by === 'ai' ? '✨ AI' : '📝 Manual'}</span>
@@ -142,7 +146,8 @@ export default function StudyPlanner() {
                 <span>{plan.start_date?.split('T')[0]}</span>
                 <button className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); deletePlan(plan.id) }} style={{ color: 'var(--danger)' }}>🗑️</button>
               </div>
-            </div>
+              </SpotlightCard>
+            </AnimatedContent>
           ))}
         </div>
       )}

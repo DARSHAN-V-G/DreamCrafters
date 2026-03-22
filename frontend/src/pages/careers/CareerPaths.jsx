@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { careerAPI } from '../../api'
 import DashboardLayout from '../../components/DashboardLayout'
+import SpotlightCard from '../../components/reactbits/SpotlightCard'
+import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function CareerPaths() {
   const [paths, setPaths] = useState([])
@@ -95,26 +98,28 @@ export default function CareerPaths() {
 
       {!loading && !error && filtered.length > 0 && (
         <div className="grid-auto">
-          {filtered.map(cp => (
-            <div className="card card-hover" key={cp.id} style={{ cursor: 'pointer' }} onClick={() => fetchPathDetail(cp.id)}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
-                {cp.field && <span className="badge badge-primary">{cp.field}</span>}
-              </div>
-              <h3 style={{ fontWeight: 700, fontSize: '1.15rem', margin: '0 0 0.5rem' }}>{cp.title}</h3>
-              {cp.description && <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>{cp.description}</p>}
-              {cp.required_skills && cp.required_skills.length > 0 && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                    {cp.required_skills.slice(0, 4).map((sk, i) => <span key={i} className="badge badge-info">{sk}</span>)}
-                    {cp.required_skills.length > 4 && <span className="badge" style={{ background: 'var(--bg-input)' }}>+{cp.required_skills.length - 4}</span>}
-                  </div>
+          {filtered.map((cp, idx) => (
+            <AnimatedContent key={cp.id} delay={0} stagger={idx * 0.08}>
+              <SpotlightCard style={{ cursor: 'pointer' }} onClick={() => fetchPathDetail(cp.id)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+                  {cp.field && <span className="badge badge-primary">{cp.field}</span>}
                 </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                {cp.avg_salary_range && <span style={{ fontWeight: 700, color: 'var(--success)', fontSize: '0.9rem' }}>💰 {cp.avg_salary_range}</span>}
-                <button className="btn btn-sm btn-primary" onClick={e => { e.stopPropagation(); fetchPathDetail(cp.id) }}>View Details →</button>
-              </div>
-            </div>
+                <h3 style={{ fontWeight: 700, fontSize: '1.15rem', margin: '0 0 0.5rem' }}>{cp.title}</h3>
+                {cp.description && <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>{cp.description}</p>}
+                {cp.required_skills && cp.required_skills.length > 0 && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      {cp.required_skills.slice(0, 4).map((sk, i) => <span key={i} className="badge badge-info">{sk}</span>)}
+                      {cp.required_skills.length > 4 && <span className="badge" style={{ background: 'var(--bg-input)' }}>+{cp.required_skills.length - 4}</span>}
+                    </div>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  {cp.avg_salary_range && <span style={{ fontWeight: 700, color: 'var(--success)', fontSize: '0.9rem' }}>💰 {cp.avg_salary_range}</span>}
+                  <button className="btn btn-sm btn-primary" onClick={e => { e.stopPropagation(); fetchPathDetail(cp.id) }}>View Details →</button>
+                </div>
+              </SpotlightCard>
+            </AnimatedContent>
           ))}
         </div>
       )}

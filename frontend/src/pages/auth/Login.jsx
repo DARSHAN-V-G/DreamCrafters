@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
 import { studentAuthAPI, educatorAuthAPI } from '../../api'
+import Particles from '../../components/reactbits/Particles'
 
 export default function Login() {
   const [role, setRole] = useState('student')
@@ -33,25 +35,39 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      <Particles count={50} color="#667eea" speed={0.2} size={1.5} opacity={0.4} />
+
+      <motion.div
+        className="auth-card"
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         <h1>Welcome Back</h1>
         <p className="subtitle">Sign in to continue learning</p>
 
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          <button
+          <motion.button
             type="button"
             className={`btn btn-full ${role === 'student' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setRole('student')}
-          >🎓 Student</button>
-          <button
+            whileTap={{ scale: 0.97 }}
+          >🎓 Student</motion.button>
+          <motion.button
             type="button"
             className={`btn btn-full ${role === 'educator' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setRole('educator')}
-          >👨‍🏫 Educator</button>
+            whileTap={{ scale: 0.97 }}
+          >👨‍🏫 Educator</motion.button>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
+          <motion.div
+            className="form-group"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             <label className="form-label">Username</label>
             <input
               type="text"
@@ -61,9 +77,14 @@ export default function Login() {
               placeholder="Enter your username"
               required
             />
-          </div>
+          </motion.div>
 
-          <div className="form-group">
+          <motion.div
+            className="form-group"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             <label className="form-label">Password</label>
             <input
               type="password"
@@ -73,17 +94,31 @@ export default function Login() {
               placeholder="Enter your password"
               required
             />
-          </div>
+          </motion.div>
 
           <div style={{ textAlign: 'right' }}>
             <Link to={`/${role}/forgot-password`} style={{ fontSize: '0.85rem' }}>Forgot password?</Link>
           </div>
 
-          {error && <div className="alert alert-error">{error}</div>}
+          {error && (
+            <motion.div
+              className="alert alert-error"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+            >
+              {error}
+            </motion.div>
+          )}
 
-          <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading}>
+          <motion.button
+            type="submit"
+            className="btn btn-primary btn-full btn-lg"
+            disabled={loading}
+            whileTap={{ scale: 0.98 }}
+            whileHover={{ boxShadow: '0 6px 25px rgba(102, 126, 234, 0.4)' }}
+          >
             {loading ? 'Signing in...' : `Sign In as ${role === 'student' ? 'Student' : 'Educator'}`}
-          </button>
+          </motion.button>
         </form>
 
         <div className="auth-footer">
@@ -92,7 +127,7 @@ export default function Login() {
         <div className="auth-footer" style={{ marginTop: '0.75rem' }}>
           <Link to="/">← Back to Home</Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

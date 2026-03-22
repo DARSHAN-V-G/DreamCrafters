@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { dummyChatResponses } from '../../utils/dummyData'
 import DashboardLayout from '../../components/DashboardLayout'
+import ClickSpark from '../../components/reactbits/ClickSpark'
 
 function detectIntent(message) {
   const lower = message.toLowerCase()
@@ -53,11 +55,19 @@ export default function ChatBot() {
 
       <div className="chat-container">
         <div className="chat-messages">
+          <AnimatePresence>
           {messages.map((m, i) => (
-            <div key={i} className={`chat-bubble ${m.role}`}>
+            <motion.div
+              key={i}
+              className={`chat-bubble ${m.role}`}
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            >
               {m.message.split('\n').map((line, j) => <span key={j}>{line}<br /></span>)}
-            </div>
+            </motion.div>
           ))}
+          </AnimatePresence>
           <div ref={messagesEnd} />
         </div>
 
@@ -69,13 +79,21 @@ export default function ChatBot() {
           </div>
         )}
 
-        <form className="chat-input-area" onSubmit={handleSubmit}>
-          <input
-            value={input} onChange={e => setInput(e.target.value)}
-            placeholder="Type your message..." maxLength={1000}
-          />
-          <button type="submit" className="btn btn-primary">Send</button>
-        </form>
+        <ClickSpark sparkColor="#667eea" sparkCount={10}>
+          <form className="chat-input-area" onSubmit={handleSubmit}>
+            <input
+              value={input} onChange={e => setInput(e.target.value)}
+              placeholder="Type your message..." maxLength={1000}
+            />
+            <motion.button
+              type="submit"
+              className="btn btn-primary"
+              whileTap={{ scale: 0.95 }}
+            >
+              Send
+            </motion.button>
+          </form>
+        </ClickSpark>
       </div>
     </DashboardLayout>
   )

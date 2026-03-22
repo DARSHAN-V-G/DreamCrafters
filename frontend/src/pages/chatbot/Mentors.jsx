@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { dummyMentors } from '../../utils/dummyData'
 import DashboardLayout from '../../components/DashboardLayout'
+import SpotlightCard from '../../components/reactbits/SpotlightCard'
+import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function Mentors() {
   const [search, setSearch] = useState('')
@@ -35,8 +37,9 @@ export default function Mentors() {
       </div>
 
       <div className="grid-2">
-        {filtered.map(m => (
-          <div className="card card-hover" key={m.id}>
+        {filtered.map((m, idx) => (
+          <AnimatedContent key={m.id} delay={0} stagger={idx * 0.1}>
+            <SpotlightCard>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'start' }}>
               <div style={{
                 width: '60px', height: '60px', borderRadius: 'var(--radius-full)',
@@ -73,7 +76,8 @@ export default function Mentors() {
                 Request Session
               </button>
             )}
-          </div>
+            </SpotlightCard>
+          </AnimatedContent>
         ))}
       </div>
     </DashboardLayout>

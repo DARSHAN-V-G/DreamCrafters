@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
 import { studentAuthAPI, educatorAuthAPI } from '../../api'
+import Particles from '../../components/reactbits/Particles'
 
 export default function Register() {
   const [role, setRole] = useState('student')
@@ -80,7 +82,14 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      <Particles count={50} color="#667eea" speed={0.2} size={1.5} opacity={0.4} />
+
+      <motion.div
+        className="auth-card"
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         <h1>Create Account</h1>
         <p className="subtitle">Step {step} of 3</p>
 
@@ -160,7 +169,7 @@ export default function Register() {
         <div className="auth-footer" style={{ marginTop: '0.75rem' }}>
           <Link to="/">← Back to Home</Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

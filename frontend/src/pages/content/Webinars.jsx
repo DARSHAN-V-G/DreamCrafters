@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { webinarAPI } from '../../api'
 import DashboardLayout from '../../components/DashboardLayout'
+import SpotlightCard from '../../components/reactbits/SpotlightCard'
+import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function Webinars() {
   const [webinars, setWebinars] = useState([])
@@ -58,8 +60,9 @@ export default function Webinars() {
 
       {!loading && !error && Array.isArray(webinars) && webinars.length > 0 && (
         <div className="grid-auto">
-          {webinars.map(w => (
-            <div className="card card-hover" key={w.id}>
+          {webinars.map((w, idx) => (
+            <AnimatedContent key={w.id} delay={0} stagger={idx * 0.08}>
+              <SpotlightCard>
               <div style={{
                 height: '100px', borderRadius: 'var(--radius-md)',
                 background: 'linear-gradient(135deg, rgba(102,126,234,0.15), rgba(118,75,162,0.2))',
@@ -92,7 +95,8 @@ export default function Webinars() {
                   {registering === w.id ? 'Registering...' : 'Register Now'}
                 </button>
               )}
-            </div>
+            </SpotlightCard>
+            </AnimatedContent>
           ))}
         </div>
       )}

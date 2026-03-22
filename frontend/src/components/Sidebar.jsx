@@ -1,6 +1,7 @@
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import GradientText from './reactbits/GradientText'
 
 const navItems = [
   { section: 'Main', items: [
@@ -43,7 +44,14 @@ export default function Sidebar({ isOpen, onClose }) {
       }} />}
       <aside className={`sidebar${isOpen ? ' open' : ''}`}>
         <div className="sidebar-brand">
-          <h2>DreamCrafters</h2>
+          <h2>
+            <GradientText
+              colors={['#667eea', '#764ba2', '#f093fb', '#667eea']}
+              animationSpeed={4}
+            >
+              DreamCrafters
+            </GradientText>
+          </h2>
           <span>Learning Platform</span>
         </div>
 

@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { dummyJobs } from '../../utils/dummyData'
 import DashboardLayout from '../../components/DashboardLayout'
+import SpotlightCard from '../../components/reactbits/SpotlightCard'
+import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function JobBoard() {
   const [search, setSearch] = useState('')
@@ -49,8 +51,9 @@ export default function JobBoard() {
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {filtered.map(job => (
-          <div className="card card-hover" key={job.id}>
+        {filtered.map((job, idx) => (
+          <AnimatedContent key={job.id} delay={0} stagger={idx * 0.08}>
+            <SpotlightCard>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: '1rem' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
@@ -78,7 +81,8 @@ export default function JobBoard() {
                 )}
               </div>
             </div>
-          </div>
+            </SpotlightCard>
+          </AnimatedContent>
         ))}
       </div>
     </DashboardLayout>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { studyPlanAPI, studySessionAPI } from '../../api'
 import DashboardLayout from '../../components/DashboardLayout'
+import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function StudyPlanDetail() {
   const { id } = useParams()
@@ -95,8 +97,9 @@ export default function StudyPlanDetail() {
         <div className="empty-state"><span className="icon">📋</span><h3>No sessions</h3><p>Add sessions to this plan to start tracking.</p></div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {plan.sessions.map(s => (
-            <div className="card" key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          {plan.sessions.map((s, idx) => (
+            <AnimatedContent key={s.id} delay={0} stagger={idx * 0.06}>
+            <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: 0 }}>
                 <span style={{ fontSize: '1.5rem' }}>{statusIcons[s.status] || '⏳'}</span>
                 <div style={{ minWidth: 0 }}>
@@ -121,6 +124,7 @@ export default function StudyPlanDetail() {
                 <button className="btn btn-sm btn-ghost" onClick={() => deleteSession(s.id)} style={{ color: 'var(--danger)' }}>🗑️</button>
               </div>
             </div>
+            </AnimatedContent>
           ))}
         </div>
       )}

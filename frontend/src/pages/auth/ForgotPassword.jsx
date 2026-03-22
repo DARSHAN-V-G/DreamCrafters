@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { studentAuthAPI, educatorAuthAPI } from '../../api'
+import Particles from '../../components/reactbits/Particles'
 
 export default function ForgotPassword() {
   const [role, setRole] = useState('student')
@@ -54,7 +56,14 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      <Particles count={50} color="#667eea" speed={0.2} size={1.5} opacity={0.4} />
+
+      <motion.div
+        className="auth-card"
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         <h1>Reset Password</h1>
         <p className="subtitle">{step <= 3 ? `Step ${step} of 3` : 'Done!'}</p>
 
@@ -116,7 +125,7 @@ export default function ForgotPassword() {
         <div className="auth-footer">
           <Link to="/login">← Back to Login</Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

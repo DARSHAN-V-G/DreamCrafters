@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useAuth } from '../../context/AuthContext'
 import { studentAuthAPI, educatorAuthAPI } from '../../api'
 import DashboardLayout from '../../components/DashboardLayout'
+import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function Settings() {
   const { user } = useAuth()
@@ -37,6 +39,11 @@ export default function Settings() {
 
   return (
     <DashboardLayout title="Settings">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
       <div className="page-header">
         <h1>Account Settings</h1>
         <p>Manage your profile and password</p>
@@ -75,6 +82,7 @@ export default function Settings() {
           <button type="submit" className="btn btn-primary" disabled={loading}>{loading ? 'Changing...' : 'Change Password'}</button>
         </form>
       </div>
+      </motion.div>
     </DashboardLayout>
   )
 }
