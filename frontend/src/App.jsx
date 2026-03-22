@@ -1,84 +1,85 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 import Home from './pages/Home'
+import Login from './pages/auth/Login'
+import Register from './pages/auth/Register'
+import ForgotPassword from './pages/auth/ForgotPassword'
 
-import StudentSignup from './pages/student/StudentSignup'
-import StudentLogin from './pages/student/StudentLogin'
-import StudentDashboard from './pages/student/StudentDashboard'
-import StudentForgotPassword from './pages/student/StudentForgotPassword'
-import StudentSettings from './pages/student/StudentSettings'
+import Dashboard from './pages/dashboard/Dashboard'
+import Settings from './pages/settings/Settings'
 
-import EducatorSignup from './pages/educator/EducatorSignup'
-import EducatorLogin from './pages/educator/EducatorLogin'
-import EducatorDashboard from './pages/educator/EducatorDashboard'
-import EducatorForgotPassword from './pages/educator/EducatorForgotPassword'
-import EducatorSettings from './pages/educator/EducatorSettings'
+import StudyPlanner from './pages/study-planner/StudyPlanner'
+import StudyPlanDetail from './pages/study-planner/StudyPlanDetail'
 
-import AdminLogin from './pages/admin/AdminLogin'
-import AdminDashboard from './pages/admin/AdminDashboard'
+import ContentLibrary from './pages/content/ContentLibrary'
+import Webinars from './pages/content/Webinars'
+import CareerPaths from './pages/careers/CareerPaths'
+
+import ChatBot from './pages/chatbot/ChatBot'
+import Mentors from './pages/chatbot/Mentors'
+
+import JobBoard from './pages/jobs/JobBoard'
 
 export default function App() {
   return (
     <Router>
       <AuthProvider>
         <Routes>
+          {/* Public */}
           <Route path="/" element={<Home />} />
-          
-          <Route path="/student/signup" element={<StudentSignup />} />
-          <Route path="/student/login" element={<StudentLogin />} />
-          <Route path="/student/forgot-password" element={<StudentForgotPassword />} />
-          <Route 
-            path="/student/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/student/settings" 
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <StudentSettings />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          <Route path="/educator/signup" element={<EducatorSignup />} />
-          <Route path="/educator/login" element={<EducatorLogin />} />
-          <Route path="/educator/forgot-password" element={<EducatorForgotPassword />} />
-          <Route 
-            path="/educator/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['educator']}>
-                <EducatorDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/educator/settings" 
-            element={
-              <ProtectedRoute allowedRoles={['educator']}>
-                <EducatorSettings />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Protected - Dashboard */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute><Dashboard /></ProtectedRoute>
+          } />
 
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Protected - Settings */}
+          <Route path="/settings" element={
+            <ProtectedRoute><Settings /></ProtectedRoute>
+          } />
+
+          {/* Protected - Study Planner (M3 Live) */}
+          <Route path="/study-planner" element={
+            <ProtectedRoute><StudyPlanner /></ProtectedRoute>
+          } />
+          <Route path="/study-planner/:id" element={
+            <ProtectedRoute><StudyPlanDetail /></ProtectedRoute>
+          } />
+
+          {/* Protected - Content (M2 Dummy) */}
+          <Route path="/content" element={
+            <ProtectedRoute><ContentLibrary /></ProtectedRoute>
+          } />
+          <Route path="/webinars" element={
+            <ProtectedRoute><Webinars /></ProtectedRoute>
+          } />
+          <Route path="/careers" element={
+            <ProtectedRoute><CareerPaths /></ProtectedRoute>
+          } />
+
+          {/* Protected - Chatbot & Mentors (M4 Dummy) */}
+          <Route path="/chat" element={
+            <ProtectedRoute><ChatBot /></ProtectedRoute>
+          } />
+          <Route path="/mentors" element={
+            <ProtectedRoute><Mentors /></ProtectedRoute>
+          } />
+
+          {/* Protected - Jobs (M5 Dummy) */}
+          <Route path="/jobs" element={
+            <ProtectedRoute><JobBoard /></ProtectedRoute>
+          } />
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </Router>
   )
 }
-

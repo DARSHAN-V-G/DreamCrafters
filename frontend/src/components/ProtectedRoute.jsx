@@ -6,15 +6,19 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return <div className="loading">Loading...</div>
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner" />
+      </div>
+    )
   }
 
   if (!user) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/login" replace />
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   return children

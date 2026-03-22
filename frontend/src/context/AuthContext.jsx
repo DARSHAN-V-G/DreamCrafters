@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import api from '../api'
+import { studentAuthAPI, educatorAuthAPI, adminAuthAPI } from '../api'
 
 const AuthContext = createContext()
 
@@ -14,9 +14,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Try to get user data from localStorage for persistence
+    // Restore user from localStorage
     const userData = localStorage.getItem('user')
-    
     if (userData) {
       setUser(JSON.parse(userData))
     }
@@ -24,32 +23,35 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const login = (userData) => {
-    // Store user data in localStorage and state
+    // Token is stored as httpOnly cookie by the backend
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
   }
 
   const logout = async () => {
-    // Call logout endpoint based on user role
     try {
       if (user?.role === 'student') {
-        await api.post('/student/auth/logout')
+        await studentAuthAPI.logout()
       } else if (user?.role === 'educator') {
-        await api.post('/educator/auth/logout')
+        await educatorAuthAPI.logout()
       } else if (user?.role === 'admin') {
-        await api.post('/admin/auth/logout')
+        await adminAuthAPI.logout()
       }
     } catch (err) {
       console.error('Logout error:', err)
     }
-    
-    // Clear local storage and state
     localStorage.removeItem('user')
     setUser(null)
   }
 
+  const updateUser = (data) => {
+    const updated = { ...user, ...data }
+    localStorage.setItem('user', JSON.stringify(updated))
+    setUser(updated)
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   )
