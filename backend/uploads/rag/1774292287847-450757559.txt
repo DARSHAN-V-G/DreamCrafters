@@ -1,0 +1,41 @@
+// User Table
+users [icon: user] {
+  _id ObjectId pk
+  username string
+  email string unique
+  password_hash string
+  total_score int
+  current_round int
+}
+
+// Question Table
+// Stores the multi-step challenges
+questions [icon: help-circle] {
+  _id ObjectId pk
+  round int
+  title string
+  count int(the number of questions for each question)
+  description array // question text
+  links array // external resources
+  answers array // flags/answers
+  points array // points per step
+  original_point array
+}
+
+// UserProgress (Your Join Table)
+// Tracks specific user interaction with questions
+user_progress [icon: activity] {
+  _id ObjectId pk
+  user_id ObjectId ref: > users._id
+  question_id ObjectId ref: > questions._id
+  current_step_index int // Your 'pointer'
+  is_completed boolean
+  points_earned int
+}
+
+// Admin Table
+admins [icon: shield] {
+  _id ObjectId pk
+  email string
+  password_hash string
+}

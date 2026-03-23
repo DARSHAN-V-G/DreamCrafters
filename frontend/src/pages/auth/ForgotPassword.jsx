@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { GraduationCap, UserCheck, ArrowLeft } from 'lucide-react'
 import { studentAuthAPI, educatorAuthAPI } from '../../api'
 import Particles from '../../components/reactbits/Particles'
