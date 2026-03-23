@@ -2,6 +2,18 @@ const fs = require('fs');
 const prisma = require('../lib/prisma');
 const { processDocument } = require('../lib/ragService');
 
+function isRagInfraUnavailable(err) {
+  const message = String(err?.message || '').toLowerCase();
+  return (
+    err?.code === 'P2021' || // missing table
+    err?.code === 'P2022' || // missing column
+    message.includes('ragdocument') ||
+    message.includes('rag_documents') ||
+    message.includes('extension "vector" is not available') ||
+    message.includes('type "vector" does not exist')
+  );
+}
+
 // ─── POST /api/rag/documents ──────────────────────────────
 exports.uploadDocument = async (req, res) => {
   try {
@@ -77,6 +89,14 @@ exports.listDocuments = async (req, res) => {
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
+    if (isRagInfraUnavailable(err)) {
+      // Degrade gracefully so chat UI still loads when pgvector/RAG tables are unavailable.
+      return res.status(200).json({
+        success: true,
+        data: [],
+        warning: 'RAG storage is not configured on this environment.',
+      });
+    }
     console.error('listDocuments error:', err);
     return res.status(500).json({ success: false, error: 'Internal server error' });
   }
