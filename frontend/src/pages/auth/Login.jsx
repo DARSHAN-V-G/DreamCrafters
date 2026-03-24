@@ -25,7 +25,12 @@ export default function Login() {
       const res = await authAPI.login({ username, password })
       if (res.data.success) {
         login(res.data.user)
-        navigate('/dashboard')
+        const loggedInRole = res.data.user?.role
+        if (loggedInRole === 'educator' || loggedInRole === 'mentor') {
+          navigate('/educator/webinars')
+        } else {
+          navigate('/dashboard')
+        }
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.')

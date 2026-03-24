@@ -24,10 +24,12 @@ exports.generatePlan = async (req, res) => {
     });
 
     // Fetch user interests
-    const interests = await prisma.userInterest.findMany({
-      where: { userId: req.user.id },
-      select: { interest: true },
-    });
+    const interests = prisma.userInterest
+      ? await prisma.userInterest.findMany({
+          where: { userId: req.user.id },
+          select: { interest: true },
+        })
+      : [];
     const interestNames = interests.map(i => i.interest);
 
     // Fetch available content

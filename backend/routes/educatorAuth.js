@@ -27,7 +27,7 @@ router.post('/verify-password-reset-otp', verifyPasswordResetOTP);
 router.post('/reset-password', resetPassword);
 
 // Protected routes
-router.get('/profile', protect, restrictTo('educator'), getEducatorProfile);
-router.post('/change-password', protect, restrictTo('educator'), changePassword);
+router.get('/profile', protect, restrictTo('educator', 'mentor'), getEducatorProfile);
+router.post('/change-password', protect, restrictTo('educator', 'mentor'), changePassword);
 
 module.exports = router;

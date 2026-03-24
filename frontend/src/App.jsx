@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { useAuth } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 import Home from './pages/Home'
@@ -10,18 +11,27 @@ import ForgotPassword from './pages/auth/ForgotPassword'
 
 import Dashboard from './pages/dashboard/Dashboard'
 import Settings from './pages/settings/Settings'
+import Profile from './pages/student/Profile'
 
 import StudyPlanner from './pages/study-planner/StudyPlanner'
 import StudyPlanDetail from './pages/study-planner/StudyPlanDetail'
 
-import ContentLibrary from './pages/content/ContentLibrary'
 import Webinars from './pages/content/Webinars'
-import CareerPaths from './pages/careers/CareerPaths'
+import EducatorWebinars from './pages/educator/Webinars'
 
 import ChatBot from './pages/chatbot/ChatBot'
 import Mentors from './pages/chatbot/Mentors'
+import Requests from './pages/educator/Requests'
 
-import JobBoard from './pages/jobs/JobBoard'
+function WebinarsEntry() {
+  const { user } = useAuth()
+
+  if (user?.role === 'educator' || user?.role === 'mentor') {
+    return <Navigate to="/educator/webinars" replace />
+  }
+
+  return <Webinars />
+}
 
 export default function App() {
   return (
@@ -44,6 +54,11 @@ export default function App() {
             <ProtectedRoute><Settings /></ProtectedRoute>
           } />
 
+          {/* Protected - Student Profile */}
+          <Route path="/profile" element={
+            <ProtectedRoute allowedRoles={['student']}><Profile /></ProtectedRoute>
+          } />
+
           {/* Protected - Study Planner (M3 Live) */}
           <Route path="/study-planner" element={
             <ProtectedRoute><StudyPlanner /></ProtectedRoute>
@@ -52,28 +67,28 @@ export default function App() {
             <ProtectedRoute><StudyPlanDetail /></ProtectedRoute>
           } />
 
-          {/* Protected - Content (M2 Dummy) */}
-          <Route path="/content" element={
-            <ProtectedRoute><ContentLibrary /></ProtectedRoute>
-          } />
+          {/* Protected - Webinars */}
           <Route path="/webinars" element={
-            <ProtectedRoute><Webinars /></ProtectedRoute>
-          } />
-          <Route path="/careers" element={
-            <ProtectedRoute><CareerPaths /></ProtectedRoute>
+            <ProtectedRoute><WebinarsEntry /></ProtectedRoute>
           } />
 
-          {/* Protected - Chatbot & Mentors (M4 Dummy) */}
+          {/* Protected - Chatbot & Mentors */}
           <Route path="/chat" element={
-            <ProtectedRoute><ChatBot /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}><ChatBot /></ProtectedRoute>
           } />
           <Route path="/mentors" element={
-            <ProtectedRoute><Mentors /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}><Mentors /></ProtectedRoute>
           } />
 
-          {/* Protected - Jobs (M5 Dummy) */}
-          <Route path="/jobs" element={
-            <ProtectedRoute><JobBoard /></ProtectedRoute>
+          {/* Protected - Educator Requests */}
+          <Route path="/requests" element={
+            <ProtectedRoute allowedRoles={['educator', 'mentor']}><Navigate to="/educator/requests" replace /></ProtectedRoute>
+          } />
+          <Route path="/educator/requests" element={
+            <ProtectedRoute allowedRoles={['educator', 'mentor']}><Requests /></ProtectedRoute>
+          } />
+          <Route path="/educator/webinars" element={
+            <ProtectedRoute allowedRoles={['educator', 'mentor']}><EducatorWebinars /></ProtectedRoute>
           } />
 
           {/* Catch-all */}

@@ -11,6 +11,7 @@ const studyPlannerRouter = require('./routes/studyPlanner');
 const contentRoutes = require('./routes/content');
 const careerPathRoutes = require('./routes/careerPaths');
 const webinarRoutes = require('./routes/webinars');
+const mentorRequestRoutes = require('./routes/mentorRequests');
 const chatRoutes = require('./routes/chat');
 const ragRoutes = require('./routes/rag');
 
@@ -32,6 +33,7 @@ app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api', contentRoutes);
 app.use('/api', careerPathRoutes);
 app.use('/api', webinarRoutes);
+app.use('/api', mentorRequestRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/rag', ragRoutes);
 

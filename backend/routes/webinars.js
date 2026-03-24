@@ -34,13 +34,16 @@ const optionalAuth = (req, res, next) => {
 // 1. GET /api/webinars/my-registrations (auth required) — BEFORE /:id
 router.get('/webinars/my-registrations', protect, ctrl.getMyRegistrations);
 
-// 2. GET /api/webinars/:id (optionalAuth)
-router.get('/webinars/:id', optionalAuth, ctrl.getWebinarById);
+// 2. GET /api/webinars/my-webinars (educator/mentor)
+router.get('/webinars/my-webinars', protect, ctrl.getMyWebinars);
 
 // 3. GET /api/webinars (public)
 router.get('/webinars', ctrl.listWebinars);
 
-// 4. POST /api/webinars (admin or mentor)
+// 4. GET /api/webinars/:id (optionalAuth)
+router.get('/webinars/:id', optionalAuth, ctrl.getWebinarById);
+
+// 5. POST /api/webinars (admin or mentor)
 router.post(
   '/webinars',
   protect,
@@ -68,7 +71,7 @@ router.post(
   ctrl.createWebinar
 );
 
-// 5. PUT /api/webinars/:id (admin or host mentor)
+// 6. PUT /api/webinars/:id (admin or host mentor)
 router.put(
   '/webinars/:id',
   protect,
@@ -91,13 +94,13 @@ router.put(
   ctrl.updateWebinar
 );
 
-// 6. DELETE /api/webinars/:id (admin only)
+// 7. DELETE /api/webinars/:id (admin or host mentor)
 router.delete('/webinars/:id', protect, ctrl.deleteWebinar);
 
-// 7. POST /api/webinars/:id/register (auth required)
+// 8. POST /api/webinars/:id/register (auth required)
 router.post('/webinars/:id/register', protect, ctrl.registerForWebinar);
 
-// 8. DELETE /api/webinars/:id/register (auth required)
+// 9. DELETE /api/webinars/:id/register (auth required)
 router.delete('/webinars/:id/register', protect, ctrl.cancelRegistration);
 
 module.exports = router;

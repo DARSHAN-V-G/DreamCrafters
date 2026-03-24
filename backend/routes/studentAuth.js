@@ -8,6 +8,7 @@ const {
   loginStudent,
   logoutStudent,
   getStudentProfile,
+  updateStudentProfile,
   requestPasswordReset,
   verifyPasswordResetOTP,
   resetPassword,
@@ -28,6 +29,7 @@ router.post('/reset-password', resetPassword);
 
 // Protected routes
 router.get('/profile', protect, restrictTo('student'), getStudentProfile);
+router.put('/profile', protect, restrictTo('student'), updateStudentProfile);
 router.post('/change-password', protect, restrictTo('student'), changePassword);
 
 module.exports = router;

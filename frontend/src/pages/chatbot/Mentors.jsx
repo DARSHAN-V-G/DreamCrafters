@@ -3,30 +3,57 @@ import {
   Users, 
   Search, 
   MapPin, 
-  Star, 
   CheckCircle 
 } from 'lucide-react'
-import { dummyMentors } from '../../utils/dummyData'
+import { mentorRequestAPI } from '../../api'
 import DashboardLayout from '../../components/DashboardLayout'
 import SpotlightCard from '../../components/reactbits/SpotlightCard'
 import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function Mentors() {
+  const [mentors, setMentors] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [selectedMentor, setSelectedMentor] = useState(null)
   const [sessionTopic, setSessionTopic] = useState('')
   const [requested, setRequested] = useState({})
 
-  const filtered = dummyMentors.filter(m =>
-    !search || m.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.interests.some(i => i.toLowerCase().includes(search.toLowerCase()))
+  React.useEffect(() => {
+    loadMentors()
+  }, [])
+
+  const loadMentors = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await mentorRequestAPI.listEducators()
+      if (res.data.success) {
+        setMentors(res.data.data || [])
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to load educators')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filtered = mentors.filter(m =>
+    !search ||
+    m.name?.toLowerCase().includes(search.toLowerCase()) ||
+    m.username?.toLowerCase().includes(search.toLowerCase())
   )
 
-  const requestSession = (mentorId) => {
+  const requestSession = async (mentorId) => {
     if (!sessionTopic.trim()) return alert('Please enter a topic')
-    setRequested({ ...requested, [mentorId]: true })
-    setSelectedMentor(null)
-    setSessionTopic('')
+    try {
+      await mentorRequestAPI.create({ mentor_id: mentorId, topic: sessionTopic.trim() })
+      setRequested({ ...requested, [mentorId]: true })
+      setSelectedMentor(null)
+      setSessionTopic('')
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to send request')
+    }
   }
 
   return (
@@ -36,10 +63,10 @@ export default function Mentors() {
           Find a Mentor
           <Users size={28} color="var(--primary)" />
         </h1>
-        <p>Connect with experienced mentors for personalized guidance
-          <span className="badge badge-warning" style={{ marginLeft: '0.75rem' }}>Demo Data</span>
-        </p>
+        <p>Connect with educators and request a one-on-one session</p>
       </div>
+
+      {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
 
       <div style={{ marginBottom: '1.5rem', position: 'relative', maxWidth: '400px' }}>
         <Search 
@@ -55,6 +82,11 @@ export default function Mentors() {
         />
       </div>
 
+      {loading ? (
+        <div className="empty-state">
+          <div className="loading-spinner" style={{ margin: '0 auto' }} />
+        </div>
+      ) : (
       <div className="grid-2">
         {filtered.map((m, idx) => (
           <AnimatedContent key={m.id} delay={0} stagger={idx * 0.1}>
@@ -73,15 +105,9 @@ export default function Mentors() {
                   <MapPin size={14} /> {m.location}
                 </p>
                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                  <span style={{ color: 'var(--warning)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <Star size={14} fill="var(--warning)" /> {m.avg_rating}
-                  </span>
-                  <span style={{ color: 'var(--text-secondary)' }}>{m.completed_sessions} sessions</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>@{m.username}</span>
                 </div>
               </div>
-            </div>
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', margin: '1rem 0' }}>
-              {m.interests.map((int, i) => <span key={i} className="badge badge-info">{int}</span>)}
             </div>
             {requested[m.id] ? (
               <div className="alert alert-success" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -105,6 +131,7 @@ export default function Mentors() {
           </AnimatedContent>
         ))}
       </div>
+      )}
     </DashboardLayout>
   )
 }

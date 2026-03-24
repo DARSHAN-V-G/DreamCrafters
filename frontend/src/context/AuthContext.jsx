@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     try {
       if (user?.role === 'student') {
         await studentAuthAPI.logout()
-      } else if (user?.role === 'educator') {
+      } else if (user?.role === 'educator' || user?.role === 'mentor') {
         await educatorAuthAPI.logout()
       } else if (user?.role === 'admin') {
         await adminAuthAPI.logout()

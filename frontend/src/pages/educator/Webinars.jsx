@@ -1,20 +1,10 @@
-import React, { useState, useEffect } from 'react'
-import {
-  Video,
-  AlertCircle,
-  Users,
-  Calendar,
-  Clock,
-  Plus,
-  Trash2,
-  Edit,
-} from 'lucide-react'
-import { webinarAPI } from '../../api'
-import { normalizeWebinar } from '../../utils/m2normalize'
+import React, { useEffect, useState } from 'react'
+import { Video, AlertCircle, Users, Calendar, Clock, Plus, Edit, Trash2 } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout'
 import SpotlightCard from '../../components/reactbits/SpotlightCard'
 import AnimatedContent from '../../components/reactbits/AnimatedContent'
-import { useAuth } from '../../context/AuthContext'
+import { webinarAPI } from '../../api'
+import { normalizeWebinar } from '../../utils/m2normalize'
 
 const emptyForm = {
   title: '',
@@ -26,98 +16,66 @@ const emptyForm = {
   max_participants: '',
 }
 
-export default function Webinars() {
-  const { user } = useAuth()
-  const isEducator = user?.role === 'educator' || user?.role === 'mentor'
-
+export default function EducatorWebinars() {
   const [webinars, setWebinars] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [registering, setRegistering] = useState(null)
-
+  const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(emptyForm)
 
-  useEffect(() => { fetchWebinars() }, [isEducator])
+  useEffect(() => {
+    loadWebinars()
+  }, [])
 
-  const fetchWebinars = async () => {
+  const loadWebinars = async () => {
     setLoading(true)
-    setError(null)
+    setError('')
     try {
-      if (isEducator) {
-        const mineRes = await webinarAPI.getMyWebinars()
-        const list = mineRes.data?.data || []
-        setWebinars((Array.isArray(list) ? list : []).map(normalizeWebinar))
-      } else {
-        const [listRes, mineRes] = await Promise.all([
-          webinarAPI.getAll(),
-          webinarAPI.getMyRegistrations().catch(() => ({ data: { data: [] } })),
-        ])
-        const list = listRes.data?.data || listRes.data?.webinars || []
-        const mine = mineRes.data?.data || []
-        const mineIds = new Set(mine.map((w) => w.id))
-        setWebinars((Array.isArray(list) ? list : []).map((w) => ({ ...normalizeWebinar(w), isRegistered: mineIds.has(w.id) })))
+      const res = await webinarAPI.getMyWebinars()
+      if (res.data.success) {
+        const list = Array.isArray(res.data.data) ? res.data.data : []
+        setWebinars(list.map(normalizeWebinar))
       }
     } catch (err) {
-      console.error('Error fetching webinars:', err)
-      setError(err.response?.data?.error || err.message)
+      setError(err.response?.data?.error || 'Failed to load webinars')
     } finally {
       setLoading(false)
     }
   }
 
-  const registerWebinar = async (id) => {
-    setRegistering(id)
-    try {
-      await webinarAPI.register(id)
-      fetchWebinars()
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to register')
-    } finally {
-      setRegistering(null)
-    }
-  }
-
-  const cancelRegistration = async (id) => {
-    try {
-      await webinarAPI.cancelRegistration(id)
-      fetchWebinars()
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to cancel')
-    }
-  }
-
-  const toIsoDatetime = (dateObj) => {
-    const d = new Date(dateObj)
+  const toLocalDateTimeValue = (dateInput) => {
+    if (!dateInput) return ''
+    const d = new Date(dateInput)
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
     return d.toISOString().slice(0, 16)
   }
 
-  const startCreate = () => {
+  const openCreate = () => {
     setEditingId(null)
     setForm(emptyForm)
     setShowForm(true)
   }
 
-  const startEdit = (webinar) => {
+  const openEdit = (webinar) => {
     setEditingId(webinar.id)
     setForm({
       title: webinar.title || '',
       description: webinar.description || '',
       topic: webinar.topic || '',
       join_link: webinar.join_link || '',
-      scheduled_at: webinar.scheduled_at ? toIsoDatetime(webinar.scheduled_at) : '',
+      scheduled_at: toLocalDateTimeValue(webinar.scheduled_at),
       duration_minutes: webinar.duration_minutes || 60,
       max_participants: webinar.max_participants || '',
     })
     setShowForm(true)
   }
 
-  const saveWebinar = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
-    setError(null)
+    setError('')
     try {
       const payload = {
         ...form,
@@ -134,7 +92,7 @@ export default function Webinars() {
       setShowForm(false)
       setEditingId(null)
       setForm(emptyForm)
-      await fetchWebinars()
+      await loadWebinars()
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to save webinar')
     } finally {
@@ -142,37 +100,37 @@ export default function Webinars() {
     }
   }
 
-  const deleteWebinar = async (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm('Delete this webinar?')) return
     try {
       await webinarAPI.delete(id)
-      fetchWebinars()
+      await loadWebinars()
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete webinar')
+      setError(err.response?.data?.error || 'Failed to delete webinar')
     }
   }
 
   return (
-    <DashboardLayout title="Webinars">
+    <DashboardLayout title="Educator Webinars">
       <div className="page-header page-header-actions">
         <div>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             Webinars
             <Video size={28} color="var(--primary)" />
           </h1>
-          <p>{isEducator ? 'Create and manage your webinars' : 'Join live sessions hosted by educators'}</p>
+          <p>Schedule and manage your webinars</p>
         </div>
-        {isEducator && (
-          <button className="btn btn-primary" onClick={startCreate} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Plus size={18} /> New Webinar
-          </button>
-        )}
+        <button className="btn btn-primary" onClick={openCreate} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Plus size={18} /> Schedule Webinar
+        </button>
       </div>
 
-      {showForm && isEducator && (
+      {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
+
+      {showForm && (
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ marginBottom: '1rem' }}>{editingId ? 'Edit Webinar' : 'Create Webinar'}</h3>
-          <form onSubmit={saveWebinar} style={{ display: 'grid', gap: '0.9rem', maxWidth: '640px' }}>
+          <form onSubmit={handleSave} style={{ display: 'grid', gap: '0.9rem', maxWidth: '640px' }}>
             <div className="form-group">
               <label className="form-label">Title</label>
               <input className="form-input" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} required />
@@ -211,22 +169,17 @@ export default function Webinars() {
         </div>
       )}
 
-      {loading && <div className="empty-state"><div className="loading-spinner" style={{ margin: '0 auto' }} /></div>}
-      {error && !loading && (
-        <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <AlertCircle size={18} /> {error}
+      {loading ? (
+        <div className="empty-state">
+          <div className="loading-spinner" style={{ margin: '0 auto' }} />
         </div>
-      )}
-
-      {!loading && !error && (!Array.isArray(webinars) || webinars.length === 0) && (
+      ) : webinars.length === 0 ? (
         <div className="empty-state">
           <Video size={48} color="var(--text-muted)" style={{ marginBottom: '1rem' }} />
-          <h3>{isEducator ? 'No webinars created yet' : 'No webinars available'}</h3>
-          <p>{isEducator ? 'Create your first webinar to get started.' : 'New webinars will appear here once scheduled.'}</p>
+          <h3>No webinars scheduled yet</h3>
+          <p>Create your first webinar to get started.</p>
         </div>
-      )}
-
-      {!loading && !error && Array.isArray(webinars) && webinars.length > 0 && (
+      ) : (
         <div className="grid-auto">
           {webinars.map((w, idx) => (
             <AnimatedContent key={w.id} delay={0} stagger={idx * 0.08}>
@@ -239,17 +192,19 @@ export default function Webinars() {
                 }}>
                   <Video size={40} />
                 </div>
+
                 {w.topic && <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>{w.topic}</span>}
                 <h3 style={{ fontWeight: 700, fontSize: '1.05rem', margin: '0.5rem 0' }}>{w.title}</h3>
-                {w.description && <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>{w.description}</p>}
+
+                {w.description && (
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+                    {w.description}
+                  </p>
+                )}
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  {w.host_name && (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <Users size={14} /> {w.host_name}
-                    </span>
-                  )}
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <Calendar size={14} /> {new Date(w.scheduled_at || w.scheduledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    <Calendar size={14} /> {new Date(w.scheduled_at || w.scheduledAt).toLocaleString('en-IN')}
                   </span>
                   {(w.duration_minutes != null || w.durationMinutes != null) && (
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -262,36 +217,15 @@ export default function Webinars() {
                     </span>
                   )}
                 </div>
-                {w.max_participants && (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div className="progress-bar" style={{ height: '6px' }}>
-                      <div className="progress-fill" style={{ width: `${((w.registered_count || 0) / w.max_participants) * 100}%` }} />
-                    </div>
-                  </div>
-                )}
 
-                {isEducator ? (
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn btn-secondary btn-sm" onClick={() => startEdit(w)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Edit size={14} /> Edit
-                    </button>
-                    <button className="btn btn-danger btn-sm" onClick={() => deleteWebinar(w.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-                ) : w.isRegistered ? (
-                  <button className="btn btn-danger btn-full btn-sm" onClick={() => cancelRegistration(w.id)}>
-                    Cancel Registration
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button className="btn btn-secondary btn-sm" onClick={() => openEdit(w)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <Edit size={14} /> Edit
                   </button>
-                ) : (
-                  <button
-                    className="btn btn-primary btn-full btn-sm"
-                    onClick={() => registerWebinar(w.id)}
-                    disabled={registering === w.id || w.is_full}
-                  >
-                    {registering === w.id ? 'Registering...' : w.is_full ? 'Full' : 'Register Now'}
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(w.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <Trash2 size={14} /> Delete
                   </button>
-                )}
+                </div>
               </SpotlightCard>
             </AnimatedContent>
           ))}

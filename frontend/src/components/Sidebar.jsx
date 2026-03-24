@@ -1,37 +1,38 @@
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Library, 
-  Target, 
-  Video, 
-  MessageSquare, 
-  Users, 
-  Briefcase, 
-  Settings, 
-  LogOut 
+import {
+  LayoutDashboard,
+  Calendar,
+  Video,
+  MessageSquare,
+  Users,
+  User,
+  Settings,
+  LogOut,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import GradientText from './reactbits/GradientText'
 
-const navItems = [
-  { section: 'Main', items: [
-    { path: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-    { path: '/study-planner', icon: <Calendar size={18} />, label: 'Study Planner' },
-  ]},
-  { section: 'Learn', items: [
-    { path: '/content', icon: <Library size={18} />, label: 'Content Library' },
-    { path: '/careers', icon: <Target size={18} />, label: 'Career Paths' },
-    { path: '/webinars', icon: <Video size={18} />, label: 'Webinars' },
-  ]},
-  { section: 'Connect', items: [
-    { path: '/chat', icon: <MessageSquare size={18} />, label: 'AI Chatbot' },
-    { path: '/mentors', icon: <Users size={18} />, label: 'Mentors' },
-  ]},
-  { section: 'Opportunities', items: [
-    { path: '/jobs', icon: <Briefcase size={18} />, label: 'Job Board' },
-  ]},
+const studentNavItems = [
+  {
+    section: 'Student', items: [
+      { path: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
+      { path: '/profile', icon: <User size={18} />, label: 'Profile' },
+      { path: '/study-planner', icon: <Calendar size={18} />, label: 'Study Planner' },
+      { path: '/webinars', icon: <Video size={18} />, label: 'Webinars' },
+      { path: '/mentors', icon: <Users size={18} />, label: 'Mentors' },
+      { path: '/chat', icon: <MessageSquare size={18} />, label: 'AI Chatbot' },
+    ]
+  },
+]
+
+const educatorNavItems = [
+  {
+    section: 'Educator', items: [
+      { path: '/educator/webinars', icon: <Video size={18} />, label: 'Webinars' },
+      { path: '/educator/requests', icon: <Users size={18} />, label: 'Requests' },
+    ]
+  },
 ]
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -44,6 +45,8 @@ export default function Sidebar({ isOpen, onClose }) {
   }
 
   const displayName = user?.name || user?.organizationName || ''
+  const isEducator = user?.role === 'educator' || user?.role === 'mentor'
+  const navItems = isEducator ? educatorNavItems : studentNavItems
   const initials = displayName
     ? displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?'

@@ -1,5 +1,7 @@
 const prisma = require('../lib/prisma');
 
+const isMentorRole = (role) => role === 'mentor' || role === 'educator';
+
 // ════════════════════════════════════════════
 // GET /api/webinars — List upcoming webinars
 // ════════════════════════════════════════════
@@ -92,6 +94,38 @@ exports.getMyRegistrations = async (req, res) => {
 };
 
 // ════════════════════════════════════════════
+// GET /api/webinars/my-webinars — Educator's webinars
+// ════════════════════════════════════════════
+exports.getMyWebinars = async (req, res) => {
+  try {
+    if (!isMentorRole(req.user.role)) {
+      return res.status(403).json({ success: false, error: 'Only educators can view this endpoint' });
+    }
+
+    const webinars = await prisma.webinar.findMany({
+      where: { hostId: req.user.id },
+      include: {
+        _count: { select: { registrations: true } },
+      },
+      orderBy: { scheduledAt: 'desc' },
+    });
+
+    const data = webinars.map((w) => ({
+      ...w,
+      registration_count: w._count.registrations,
+      is_full:
+        w.maxParticipants !== null &&
+        w._count.registrations >= w.maxParticipants,
+    }));
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+// ════════════════════════════════════════════
 // GET /api/webinars/:id — Single webinar (optionalAuth)
 // ════════════════════════════════════════════
 exports.getWebinarById = async (req, res) => {
@@ -157,7 +191,7 @@ exports.getWebinarById = async (req, res) => {
 // ════════════════════════════════════════════
 exports.createWebinar = async (req, res) => {
   try {
-    if (req.user.role !== 'admin' && req.user.role !== 'mentor') {
+    if (req.user.role !== 'admin' && !isMentorRole(req.user.role)) {
       return res.status(403).json({ success: false, error: 'Access denied. Admin or mentor only.' });
     }
 
@@ -252,10 +286,6 @@ exports.updateWebinar = async (req, res) => {
 // ════════════════════════════════════════════
 exports.deleteWebinar = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, error: 'Access denied. Admin only.' });
-    }
-
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ success: false, error: 'Invalid webinar ID' });
@@ -264,6 +294,11 @@ exports.deleteWebinar = async (req, res) => {
     const webinar = await prisma.webinar.findUnique({ where: { id } });
     if (!webinar) {
       return res.status(404).json({ success: false, error: 'Webinar not found' });
+    }
+
+    // Admin can delete any webinar; educator can delete only own webinar.
+    if (req.user.role !== 'admin' && webinar.hostId !== req.user.id) {
+      return res.status(403).json({ success: false, error: 'Access denied. Admin or host only.' });
     }
 
     await prisma.webinar.delete({ where: { id } });

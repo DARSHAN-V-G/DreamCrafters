@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   Calendar, 
-  Library, 
-  Target, 
-  Briefcase, 
+  Video,
   MessageSquare, 
   Users, 
   User as UserIcon 
@@ -19,6 +17,7 @@ import AnimatedContent from '../../components/reactbits/AnimatedContent'
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const isEducator = user?.role === 'educator' || user?.role === 'mentor'
   const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
 
@@ -28,7 +27,7 @@ export default function Dashboard() {
 
   const loadProfile = async () => {
     try {
-      const authAPI = user?.role === 'educator' ? educatorAuthAPI : studentAuthAPI
+      const authAPI = isEducator ? educatorAuthAPI : studentAuthAPI
       const res = await authAPI.getProfile()
       if (res.data.success) setProfile(res.data.user)
     } catch (err) {
@@ -36,21 +35,30 @@ export default function Dashboard() {
     }
   }
 
-  const stats = [
-    { icon: <Calendar size={20} />, label: 'Study Plans', value: 3, color: 'purple', link: '/study-planner' },
-    { icon: <Library size={20} />, label: 'Content', value: 24, color: 'blue', link: '/content' },
-    { icon: <Target size={20} />, label: 'Career Paths', value: 5, color: 'green', link: '/careers' },
-    { icon: <Briefcase size={20} />, label: 'Jobs', value: 6, color: 'orange', link: '/jobs' },
-  ]
+  const stats = isEducator
+    ? [
+        { icon: <Video size={20} />, label: 'Webinars', value: 0, color: 'blue', link: '/educator/webinars' },
+        { icon: <Users size={20} />, label: 'Session Requests', value: 0, color: 'green', link: '/educator/requests' },
+      ]
+    : [
+        { icon: <Calendar size={20} />, label: 'Study Plans', value: 0, color: 'purple', link: '/study-planner' },
+        { icon: <Video size={20} />, label: 'Webinars', value: 0, color: 'blue', link: '/webinars' },
+        { icon: <Users size={20} />, label: 'Mentors', value: 0, color: 'green', link: '/mentors' },
+        { icon: <MessageSquare size={20} />, label: 'AI Chat', value: 0, color: 'orange', link: '/chat' },
+      ]
 
-  const quickActions = [
-    { icon: <Calendar size={24} />, label: 'Create Study Plan', desc: 'Generate an AI-powered plan', path: '/study-planner' },
-    { icon: <Library size={24} />, label: 'Browse Content', desc: 'Explore videos & articles', path: '/content' },
-    { icon: <MessageSquare size={24} />, label: 'Chat with AI', desc: 'Get instant guidance', path: '/chat' },
-    { icon: <Users size={24} />, label: 'Find a Mentor', desc: 'Connect with experts', path: '/mentors' },
-    { icon: <Briefcase size={24} />, label: 'Browse Jobs', desc: 'Find opportunities', path: '/jobs' },
-    { icon: <Target size={24} />, label: 'Career Paths', desc: 'Explore career roadmaps', path: '/careers' },
-  ]
+  const quickActions = isEducator
+    ? [
+        { icon: <Video size={24} />, label: 'Create Webinar', desc: 'Schedule a new session for students', path: '/educator/webinars' },
+        { icon: <Users size={24} />, label: 'Review Requests', desc: 'Accept or reject mentor session requests', path: '/educator/requests' },
+      ]
+    : [
+        { icon: <UserIcon size={24} />, label: 'My Profile', desc: 'View and edit personal details', path: '/profile' },
+        { icon: <Calendar size={24} />, label: 'Study Planner', desc: 'Create AI or manual study plans', path: '/study-planner' },
+        { icon: <Video size={24} />, label: 'Browse Webinars', desc: 'Register for educator webinars', path: '/webinars' },
+        { icon: <Users size={24} />, label: 'Find Mentors', desc: 'Request sessions from educators', path: '/mentors' },
+        { icon: <MessageSquare size={24} />, label: 'AI Chatbot', desc: 'Chat and upload files for guidance', path: '/chat' },
+      ]
 
   return (
     <DashboardLayout title="Dashboard">
@@ -61,7 +69,7 @@ export default function Dashboard() {
       >
         <div className="page-header">
           <h1>Welcome back, {(user?.name || user?.organizationName || 'there').split(' ')[0]}!</h1>
-          <p>Here's your learning overview</p>
+          <p>{isEducator ? 'Manage your webinars and student requests' : 'Track your progress and learning activities'}</p>
         </div>
 
         <div className="stats-grid">

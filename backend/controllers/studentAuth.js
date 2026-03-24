@@ -234,6 +234,67 @@ exports.getStudentProfile = async (req, res) => {
   }
 };
 
+exports.updateStudentProfile = async (req, res) => {
+  try {
+    const name = req.body.name?.trim();
+    const username = req.body.username?.trim();
+    const location = req.body.location?.trim();
+
+    if (!name && !username && location === undefined) {
+      return res.status(400).json({ error: 'No profile fields provided' });
+    }
+
+    const student = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, role: true },
+    });
+
+    if (!student || student.role !== ROLE) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (username) {
+      const existingUsername = await prisma.user.findFirst({
+        where: {
+          username,
+          id: { not: student.id },
+        },
+        select: { id: true },
+      });
+
+      if (existingUsername) {
+        return res.status(400).json({ error: 'Username already taken' });
+      }
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: student.id },
+      data: {
+        ...(name ? { name } : {}),
+        ...(username ? { username } : {}),
+        ...(location !== undefined ? { location: location || null } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        role: true,
+        location: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: updated,
+    });
+  } catch (err) {
+    console.error('Student update profile failed:', err);
+    return res.status(500).json({ error: 'Failed to update profile' });
+  }
+};
+
 exports.logoutStudent = async (req, res) => {
   try {
     res.cookie('token', '', {

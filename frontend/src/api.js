@@ -14,6 +14,7 @@ export const studentAuthAPI = {
   login: (data) => api.post('/student/auth/login', data),
   logout: () => api.post('/student/auth/logout'),
   getProfile: () => api.get('/student/auth/profile'),
+  updateProfile: (data) => api.put('/student/auth/profile', data),
   changePassword: (data) => api.post('/student/auth/change-password', data),
   requestPasswordReset: (data) => api.post('/student/auth/request-password-reset', data),
   verifyPasswordResetOTP: (data) => api.post('/student/auth/verify-password-reset-otp', data),
@@ -102,11 +103,21 @@ export const webinarAPI = {
   getAll: () => api.get('/webinars'),
   getOne: (id) => api.get(`/webinars/${id}`),
   getMyRegistrations: () => api.get('/webinars/my-registrations'),
+  getMyWebinars: () => api.get('/webinars/my-webinars'),
   create: (data) => api.post('/webinars', data),
   update: (id, data) => api.put(`/webinars/${id}`, data),
   delete: (id) => api.delete(`/webinars/${id}`),
   register: (id) => api.post(`/webinars/${id}/register`),
   cancelRegistration: (id) => api.delete(`/webinars/${id}/register`),
+}
+
+export const mentorRequestAPI = {
+  listEducators: () => api.get('/educators'),
+  create: (data) => api.post('/mentor-requests', data),
+  list: (params) => api.get('/mentor-requests', { params }),
+  accept: (id) => api.patch(`/mentor-requests/${id}/accept`),
+  reject: (id) => api.patch(`/mentor-requests/${id}/reject`),
+  withdraw: (id) => api.delete(`/mentor-requests/${id}`),
 }
 
 // ===== Chatbot API (M4 — New) =====
