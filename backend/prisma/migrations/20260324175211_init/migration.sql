@@ -1,6 +1,3 @@
--- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "vector";
-
 -- CreateTable
 CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
@@ -273,7 +270,6 @@ CREATE TABLE "rag_chunks" (
     "document_id" INTEGER NOT NULL,
     "chunk_index" INTEGER NOT NULL,
     "content" TEXT NOT NULL,
-    "embedding" vector(768),
     "metadata" JSONB,
 
     CONSTRAINT "rag_chunks_pkey" PRIMARY KEY ("id")

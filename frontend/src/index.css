@@ -276,7 +276,8 @@ a:hover {
 .top-navbar-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
+  flex-direction: row-reverse;
 }
 
 /* ===== Cards ===== */
