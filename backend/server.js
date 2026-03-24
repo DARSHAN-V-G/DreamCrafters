@@ -8,7 +8,6 @@ const studentAuthRouter = require('./routes/studentAuth');
 const educatorAuthRouter = require('./routes/educatorAuth');
 const adminAuthRouter = require('./routes/adminAuth');
 const studyPlannerRouter = require('./routes/studyPlanner');
-const contentRoutes = require('./routes/content');
 const careerPathRoutes = require('./routes/careerPaths');
 const webinarRoutes = require('./routes/webinars');
 const mentorRequestRoutes = require('./routes/mentorRequests');
@@ -30,7 +29,6 @@ app.use('/api/admin/auth', adminAuthRouter);
 // Important: New routers must be mounted BEFORE studyPlannerRouter
 // because studyPlannerRouter contains a global router.use(protect)
 // that will cause 401s on public M2 endpoints if mounted first.
-app.use('/api', contentRoutes);
 app.use('/api', careerPathRoutes);
 app.use('/api', webinarRoutes);
 app.use('/api', mentorRequestRoutes);

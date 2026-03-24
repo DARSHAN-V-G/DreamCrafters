@@ -41,11 +41,6 @@ async function generateStudyPlan(context) {
 - Learning style: ${preferences.learningStyle || 'not specified'}
 - Interests: ${interests.length > 0 ? interests.join(', ') : 'general'}
 
-## Available Content Items
-${contentItems.length > 0
-    ? contentItems.map(c => `- ID: ${c.id}, Title: "${c.title}", Difficulty: ${c.difficulty}, Duration: ${c.durationMinutes || 60} min, Type: ${c.type}`).join('\n')
-    : 'No pre-existing content. Create original session titles based on the goal.'}
-
 ## Rules
 1. Sessions ONLY within ${startDate} to ${endDate}.
 2. At most ${dailyHours} session(s) per day, each around 60 minutes.
@@ -78,7 +73,7 @@ ${contentItems.length > 0
               items: {
                 type: 'object',
                 properties: {
-                  content_id: { type: 'integer' },
+
                   title: { type: 'string' },
                   scheduled_date: { type: 'string' },
                   scheduled_time: { type: 'string' },
@@ -86,7 +81,7 @@ ${contentItems.length > 0
                   priority: { type: 'integer' },
                   notes: { type: 'string' },
                 },
-                required: ['content_id', 'title', 'scheduled_date', 'scheduled_time', 'duration_minutes', 'priority', 'notes'],
+                required: ['title', 'scheduled_date', 'scheduled_time', 'duration_minutes', 'priority', 'notes'],
                 additionalProperties: false,
               },
             },
@@ -107,23 +102,13 @@ ${contentItems.length > 0
     throw new Error('AI returned an invalid study plan structure');
   }
 
-  // Build set of valid content IDs
-  const validContentIds = new Set(contentItems.map(c => c.id));
-
-  // Sanitize each session — convert 0 content_id to null, validate ranges
+  // Sanitize each session
   parsed.sessions = parsed.sessions.map((s, i) => {
     if (!s.title || !s.scheduled_date || !s.duration_minutes) {
       throw new Error(`AI returned an invalid session at index ${i}`);
     }
 
-    // content_id: 0 means "no content", convert to null. Also null out if ID doesn't exist.
-    const rawContentId = s.content_id;
-    const contentId = (rawContentId && rawContentId > 0 && validContentIds.has(rawContentId))
-      ? rawContentId
-      : null;
-
     return {
-      content_id: contentId,
       title: String(s.title).substring(0, 255),
       scheduled_date: s.scheduled_date,
       scheduled_time: s.scheduled_time || null,

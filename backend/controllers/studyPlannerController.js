@@ -32,48 +32,8 @@ exports.generatePlan = async (req, res) => {
       : [];
     const interestNames = interests.map(i => i.interest);
 
-    // Fetch available content
+    // No content items to fetch as the Content module is removed.
     let contentItems = [];
-
-    if (career_path_id) {
-      // Content linked to the career path
-      const careerContent = await prisma.careerPathContent.findMany({
-        where: { careerPathId: career_path_id },
-        orderBy: { orderIndex: 'asc' },
-        include: {
-          content: {
-            select: { id: true, title: true, difficulty: true, durationMinutes: true, type: true, category: { select: { name: true } } },
-          },
-        },
-      });
-      contentItems = careerContent.map(cc => ({
-        id: cc.content.id,
-        title: cc.content.title,
-        difficulty: cc.content.difficulty,
-        durationMinutes: cc.content.durationMinutes,
-        type: cc.content.type,
-        category: cc.content.category?.name || null,
-      }));
-    } else {
-      // Content matching user interests via categories
-      const whereClause = interestNames.length > 0
-        ? { category: { name: { in: interestNames, mode: 'insensitive' } } }
-        : {};
-
-      const content = await prisma.content.findMany({
-        where: whereClause,
-        select: { id: true, title: true, difficulty: true, durationMinutes: true, type: true, category: { select: { name: true } } },
-        take: 50,
-      });
-      contentItems = content.map(c => ({
-        id: c.id,
-        title: c.title,
-        difficulty: c.difficulty,
-        durationMinutes: c.durationMinutes,
-        type: c.type,
-        category: c.category?.name || null,
-      }));
-    }
 
     // Call Gemini AI to generate the plan
     const aiPlan = await generateStudyPlan({
@@ -109,7 +69,6 @@ exports.generatePlan = async (req, res) => {
         await tx.studySession.createMany({
           data: aiPlan.sessions.map(s => ({
             planId: plan.id,
-            contentId: s.content_id,
             title: s.title,
             scheduledDate: new Date(s.scheduled_date),
             scheduledTime: s.scheduled_time ? new Date(`1970-01-01T${s.scheduled_time}:00Z`) : null,
@@ -241,7 +200,6 @@ exports.getPlan = async (req, res) => {
           duration_minutes: s.durationMinutes,
           status: s.status,
           priority: s.priority,
-          content_id: s.contentId,
           notes: s.notes,
           completed_at: s.completedAt,
         })),
@@ -442,7 +400,6 @@ exports.listSessions = async (req, res) => {
         duration_minutes: s.durationMinutes,
         status: s.status,
         priority: s.priority,
-        content_id: s.contentId,
         notes: s.notes,
         completed_at: s.completedAt,
       })),
@@ -471,7 +428,6 @@ exports.addSession = async (req, res) => {
         scheduledDate: new Date(scheduled_date),
         scheduledTime: scheduled_time ? new Date(`1970-01-01T${scheduled_time}:00Z`) : null,
         durationMinutes: duration_minutes,
-        contentId: content_id || null,
         priority: priority || 2,
         status: 'pending',
       },
@@ -488,7 +444,6 @@ exports.addSession = async (req, res) => {
         duration_minutes: session.durationMinutes,
         status: session.status,
         priority: session.priority,
-        content_id: session.contentId,
       },
     });
   } catch (err) {
@@ -524,29 +479,7 @@ exports.completeSession = async (req, res) => {
       data: updateData,
     });
 
-    // If session has content_id, upsert content progress
-    if (session.contentId) {
-      await prisma.userContentProgress.upsert({
-        where: {
-          userId_contentId: {
-            userId: req.user.id,
-            contentId: session.contentId,
-          },
-        },
-        create: {
-          userId: req.user.id,
-          contentId: session.contentId,
-          status: 'completed',
-          progressPercent: 100,
-          completedAt: new Date(),
-        },
-        update: {
-          status: 'completed',
-          progressPercent: 100,
-          completedAt: new Date(),
-        },
-      });
-    }
+    // Content progress tracking removed as the Content module is removed.
 
     res.status(200).json({
       success: true,

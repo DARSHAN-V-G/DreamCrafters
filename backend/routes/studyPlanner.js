@@ -83,7 +83,6 @@ router.post(
     body('scheduled_date').isDate().withMessage('scheduled_date must be a valid date (YYYY-MM-DD)'),
     body('duration_minutes').isInt({ min: 5 }).withMessage('duration_minutes must be at least 5'),
     body('priority').optional().isIn([1, 2, 3]).withMessage('priority must be 1, 2, or 3'),
-    body('content_id').optional().isInt().withMessage('content_id must be an integer'),
     validate,
   ],
   ctrl.addSession

@@ -63,18 +63,4 @@ router.put(
 // DELETE /api/career-paths/:id (admin only)
 router.delete('/career-paths/:id', protect, ctrl.deleteCareerPath);
 
-// POST /api/career-paths/:id/content (admin only)
-router.post(
-  '/career-paths/:id/content',
-  protect,
-  [
-    body('content_id').isInt().withMessage('content_id must be an integer'),
-    validate,
-  ],
-  ctrl.linkContent
-);
-
-// DELETE /api/career-paths/:id/content/:contentId (admin only)
-router.delete('/career-paths/:id/content/:contentId', protect, ctrl.unlinkContent);
-
 module.exports = router;
